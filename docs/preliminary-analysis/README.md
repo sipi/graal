@@ -19,6 +19,7 @@ Evaluate whether to refurbish Graal (dependency upgrade, modernization, partial 
 | 07 | [State of the art: theory](07-sota-theory.md) | Theory survey (semantics, equivalence-preserving transformations, decidability classes) with a checklist of 20 specification decisions. |
 | 08 | [Kotlin vs Rust](08-kotlin-vs-rust.md) | Weighted analysis: Rust 4.10 vs Kotlin 3.35; recommends a Rust core, conditional on a spike. |
 | 09 | [Skolem-function frameworks](09-skolem-function-frameworks.md) | Theoretical frameworks with named Skolem functions: function-graph translation T(P), transfer of decidability classes, equality options (lookup-before-invent), Graal-as-oracle boundaries, frameworks F1/F2/F3. |
+| 11 | [F2 framework definition](11-f2-framework-definition.md) | **DRAFT — awaiting owner validation.** Formal definition of the v1 framework F2: syntax, lookup-before-invent translation, stratification, perfect-model semantics with exact decimals, reasoning tasks, soundness under non-termination and completeness statuses, termination portfolio, strategies (incl. hybrid rewriting, D5), relation to existential rules, worked examples, open points. |
 
 ## Key findings
 
@@ -103,6 +104,7 @@ Recorded 2026-09-30:
 - **D2** "Lookup before invent" is the default for named functions: a function value is taken from data when recorded and invented only otherwise. User-declared functional dependencies are checked as integrity constraints, not used for equality reasoning. The analyser must detect non-stratifiable programs created by this mechanism (a value that is itself derived through the function).
 - **D3** The function-graph translation T(P) ([report 09](09-skolem-function-frameworks.md) §1.2) is accepted as the bridge between existential and Skolem readings (approach already known to the project owner).
 - **D4** The rule-transformation deliverable (former "10") is postponed: it is not a prerequisite for a first prototype.
+- **D5** Query rewriting in presence of negation: rewrite stratum by stratum, negated literals being evaluated against lower strata materialised by the chase (hybrid). v1 guard: pre-computed rewriting only for queries that depend on no negation (directly or transitively). Pre-computed rewritings are invalidated when rules change. See [report 11](11-f2-framework-definition.md) §8.4.
 
 ## Next steps
 
@@ -111,7 +113,7 @@ Phase order decided by the project owner:
 1. **Theoretical framework.** Deliverables:
    - 09 frameworks (done, validated: F2 chosen, see D1);
    - 10 rule transformations and proof sheets (postponed, see D4);
-   - 11 framework definition document: syntax, semantics, reasoning tasks, completeness statuses.
+   - 11 framework definition document: syntax, semantics, reasoning tasks, completeness statuses (drafted, awaiting owner validation: [report 11](11-f2-framework-definition.md), open points in §11).
 2. **Test scenarios and quality benchmark** (correct and complete results), built independently of the implementation. Oracles: Graal on the fragment where it is valid (see [report 09](09-skolem-function-frameworks.md) §1.4), clingo/DLV for negation/aggregation over invented terms.
 3. **Software specifications and architecture.**
 4. **Prototype** (Kotlin vs Rust decision). With agent-written code the criterion becomes: passes the conformance suite and the architecture remains reviewable by the owner; Rust's compiler-enforced safety is an extra argument.
