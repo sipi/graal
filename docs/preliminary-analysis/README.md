@@ -20,6 +20,7 @@ Evaluate whether to refurbish Graal (dependency upgrade, modernization, partial 
 | 08 | [Kotlin vs Rust](08-kotlin-vs-rust.md) | Weighted analysis: Rust 4.10 vs Kotlin 3.35; recommends a Rust core, conditional on a spike. |
 | 09 | [Skolem-function frameworks](09-skolem-function-frameworks.md) | Theoretical frameworks with named Skolem functions: function-graph translation T(P), transfer of decidability classes, equality options (lookup-before-invent), Graal-as-oracle boundaries, frameworks F1/F2/F3. |
 | 11 | [F2 framework definition](11-f2-framework-definition.md) | **DRAFT — awaiting owner validation.** Formal definition of the v1 framework F2: syntax, lookup-before-invent translation, stratification, perfect-model semantics with exact decimals, reasoning tasks, soundness under non-termination and completeness statuses, termination portfolio, strategies (incl. hybrid rewriting, D5), relation to existential rules, worked examples, open points. |
+| 12 | [Invention under negation](12-invention-under-negation.md) | Value invention correlated with negation: behaviour across approaches, test scenarios. Covers `employee(x), not hasBoss(x) → ∃y managerOf(y,x)` and variants under F2, restricted/Skolem chase, stable models and well-founded semantics, checked with clingo, a chase simulator and Nemo. Also covers the restricted chase as an implicit self-negation, recommends rejecting self- and cross-defeating invention, and gives 14 test scenarios. |
 
 ## Key findings
 
