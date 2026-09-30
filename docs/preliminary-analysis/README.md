@@ -4,7 +4,7 @@
 
 Evaluate whether to refurbish Graal (dependency upgrade, modernization, partial Kotlin conversion) in order to build a homemade but solid logical reasoning engine.
 
-**Conclusion:** build a NEW core (language, Kotlin vs Rust, still under debate), using Graal as a test oracle.
+**Conclusion:** build a NEW core (language, Kotlin vs Rust, still under debate), using Graal as a test oracle (valid only on a fragment once named Skolem functions are used, see [report 09](09-skolem-function-frameworks.md) §1.4).
 
 ## Reports
 
@@ -18,6 +18,7 @@ Evaluate whether to refurbish Graal (dependency upgrade, modernization, partial 
 | 06 | [State of the art: existing engines](06-sota-engines.md) | Strong ideas of existing engines, plus a prioritised list of ideas to borrow. |
 | 07 | [State of the art: theory](07-sota-theory.md) | Theory survey (semantics, equivalence-preserving transformations, decidability classes) with a checklist of 20 specification decisions. |
 | 08 | [Kotlin vs Rust](08-kotlin-vs-rust.md) | Weighted analysis: Rust 4.10 vs Kotlin 3.35; recommends a Rust core, conditional on a spike. |
+| 09 | [Skolem-function frameworks](09-skolem-function-frameworks.md) | Theoretical frameworks with named Skolem functions: function-graph translation T(P), transfer of decidability classes, equality options (lookup-before-invent), Graal-as-oracle boundaries, frameworks F1/F2/F3. |
 
 ## Key findings
 
@@ -61,6 +62,9 @@ Evaluate whether to refurbish Graal (dependency upgrade, modernization, partial 
   - associated differential test.
 
   This lets them be mechanised later in Lean (level b), e.g. via a small verified certificate checker. A verified implementation (level c) is out of scope.
+- **E10** Reasoning strategies: chase, query rewriting (backward chaining) and their combination, selected by the analyser. GBTS-specific algorithms (finite representation of infinite models) are out of scope.
+- **E11** Development model: 100% of the code is written by AI agents; theoretical choices and architecture are validated by the project owner; the conformance/quality test suite and benchmarks are built independently of (and before) the implementation.
+- **E12** Rule-set simplification includes premise simplification using other rules (e.g. {a→b, a∧b→c} ≡ {a→b, a→c}); termination is guaranteed by a strictly decreasing measure (e.g. total body size).
 - **Scope:** existential rules first, then stratified negation (an existing external module to integrate), then aggregation. Uncertainty and time are out of scope for now.
 - **Target domains:** enterprise / complex business-domain modelling (small-to-medium KBs), later aerospace/defense (potentially large KBs).
 
@@ -85,9 +89,20 @@ Evaluate whether to refurbish Graal (dependency upgrade, modernization, partial 
 
 Graal was written under an employment contract, so copyright is likely held by the former employer(s), under CeCILL 2.1. Porting code creates a derivative work under CeCILL; re-implementing algorithms from publications avoids that. To be validated by legal counsel.
 
+## Running business examples
+
+- **E1-ex** "If no specific condition applies then general conditions apply": stratified negation, closed-world.
+- **E2-ex** "Basket > 200€ ⇒ free delivery": sum aggregate, comparison, exact decimals.
+- **E3-ex** "Every employee has a line manager": existential vs named Skolem function. With "every manager is an employee", the Skolem chase does not terminate; this is the first test case for the analyser.
+
 ## Next steps
 
-1. Phase 0: Graal as oracle (Java 21 green, drop the OWL/Neo4j/SQL modules, collect a test KB corpus).
-2. Phase 1a: specification, resolving the 20 decisions of [report 07](07-sota-theory.md).
-3. Phase 1b: language spike (Kotlin vs Rust, see E6).
-4. Later phases: core, rewriting, negation, aggregation, benchmarks.
+Phase order decided by the project owner:
+
+1. **Theoretical framework.** Deliverables:
+   - 09 frameworks (done, awaiting owner validation);
+   - 10 rule transformations and proof sheets;
+   - 11 framework definition document: syntax, semantics, reasoning tasks, completeness statuses.
+2. **Test scenarios and quality benchmark** (correct and complete results), built independently of the implementation. Oracles: Graal on the fragment where it is valid (see [report 09](09-skolem-function-frameworks.md) §1.4), clingo/DLV for negation/aggregation over invented terms.
+3. **Software specifications and architecture.**
+4. **Prototype** (Kotlin vs Rust decision). With agent-written code the criterion becomes: passes the conformance suite and the architecture remains reviewable by the owner; Rust's compiler-enforced safety is an extra argument.
