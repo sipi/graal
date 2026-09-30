@@ -272,7 +272,7 @@ Note that rdf4j 5, Jena 5 and Neo4j 5+ require Java 11 or 17+, so (b) implies dr
 
 ---
 
-## Appendix: commands and logs (scratchpad)
+## Appendix: commands and logs (not included in this repository)
 
 - `build-asis.log`: unmodified `mvn -B test -fae` (FAIL, 492 run / 76 F / 71 E, 1:47)
 - `build-addopens.log`: with add-opens (SUCCESS, 492 / 0 / 0, 2:49)
