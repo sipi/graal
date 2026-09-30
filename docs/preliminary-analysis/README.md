@@ -62,7 +62,7 @@ Evaluate whether to refurbish Graal (dependency upgrade, modernization, partial 
   - associated differential test.
 
   This lets them be mechanised later in Lean (level b), e.g. via a small verified certificate checker. A verified implementation (level c) is out of scope.
-- **E10** Reasoning strategies: chase, query rewriting (backward chaining) and their combination, selected by the analyser. GBTS-specific algorithms (finite representation of infinite models) are out of scope.
+- **E10** Reasoning strategies, selected by the analyser: (a) forward chaining (chase / materialisation); (b) backward chaining, performed dynamically at query time; (c) query rewriting, which shares foundations with backward chaining but can be executed a priori on queries known in advance (e.g. pre-registered queries), saving considerable run time when the rewriting is bounded; (d) combinations of these. Pre-computed rewritings must be invalidated when the rule set changes. GBTS-specific algorithms are out of scope.
 - **E11** Development model: 100% of the code is written by AI agents; theoretical choices and architecture are validated by the project owner; the conformance/quality test suite and benchmarks are built independently of (and before) the implementation.
 - **E12** Rule-set simplification includes premise simplification using other rules (e.g. {a→b, a∧b→c} ≡ {a→b, a→c}); termination is guaranteed by a strictly decreasing measure (e.g. total body size).
 - **Scope:** existential rules first, then stratified negation (an existing external module to integrate), then aggregation. Uncertainty and time are out of scope for now.
@@ -95,13 +95,22 @@ Graal was written under an employment contract, so copyright is likely held by t
 - **E2-ex** "Basket > 200€ ⇒ free delivery": sum aggregate, comparison, exact decimals.
 - **E3-ex** "Every employee has a line manager": existential vs named Skolem function. With "every manager is an employee", the Skolem chase does not terminate; this is the first test case for the analyser.
 
+## Decisions
+
+Recorded 2026-09-30:
+
+- **D1** Theoretical framework for v1: F2, i.e. stratified Datalog with named Skolem functions (perfect-model semantics, exact decimals), see [report 09](09-skolem-function-frameworks.md) §6. The term model is designed from day one with three term kinds (constant, named functional term, labelled null) to allow later evolution towards F3 (hybrid).
+- **D2** "Lookup before invent" is the default for named functions: a function value is taken from data when recorded and invented only otherwise. User-declared functional dependencies are checked as integrity constraints, not used for equality reasoning. The analyser must detect non-stratifiable programs created by this mechanism (a value that is itself derived through the function).
+- **D3** The function-graph translation T(P) ([report 09](09-skolem-function-frameworks.md) §1.2) is accepted as the bridge between existential and Skolem readings (approach already known to the project owner).
+- **D4** The rule-transformation deliverable (former "10") is postponed: it is not a prerequisite for a first prototype.
+
 ## Next steps
 
 Phase order decided by the project owner:
 
 1. **Theoretical framework.** Deliverables:
-   - 09 frameworks (done, awaiting owner validation);
-   - 10 rule transformations and proof sheets;
+   - 09 frameworks (done, validated: F2 chosen, see D1);
+   - 10 rule transformations and proof sheets (postponed, see D4);
    - 11 framework definition document: syntax, semantics, reasoning tasks, completeness statuses.
 2. **Test scenarios and quality benchmark** (correct and complete results), built independently of the implementation. Oracles: Graal on the fragment where it is valid (see [report 09](09-skolem-function-frameworks.md) §1.4), clingo/DLV for negation/aggregation over invented terms.
 3. **Software specifications and architecture.**
