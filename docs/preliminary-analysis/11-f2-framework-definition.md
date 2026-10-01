@@ -1,13 +1,16 @@
 # 11: Definition of the F2 framework (v1 reference contract)
 
-**Status: DRAFT, awaiting owner validation.** This document is the reference contract that conformance tests and the implementation must follow. Where a choice had to be made that the owner has not yet taken, it is marked **[choice]** and repeated in §11 with its options and a recommended default.
+**Status: VALIDATED by owner on 2026-10-01, except OP-3 (pending [report 14](14-uniqueness-and-functionality.md)).** This document is the reference contract that conformance tests and the implementation must follow. Points that required an owner choice are marked **[choice]** and repeated in §11 with their options. Since the validation, each such point carries the decision that settled it (D9-D16 in the [README](README.md#decisions)), or "default validated" when the recommended default was accepted as is. OP-3 remains open.
 
-Scope: F2 = stratified Datalog with **named** Skolem functions under perfect-model semantics, with exact decimals (decision D1). It encodes decisions D1, D2, D3 and D5 (see [README](README.md)) and requirements E1, E3, E5 and E10. Background: [report 09](09-skolem-function-frameworks.md) (named functions, `T(P)`, termination criteria) and [report 07](07-sota-theory.md) §7 (checklist of specification decisions).
+Scope: F2 = stratified Datalog with **named** Skolem functions under perfect-model semantics, with exact decimals (decision D1). It encodes decisions D1, D2, D3, D5 and D9-D16 (see [README](README.md#decisions)) and requirements E1, E3, E5 and E10. Implementation is staged (D16, D17): v0 is plain positive Datalog (D6), and v1 implements materialisation only (§8). Background: [report 09](09-skolem-function-frameworks.md) (named functions, `T(P)`, termination criteria) and [report 07](07-sota-theory.md) §7 (checklist of specification decisions).
 
 Conventions:
 - Propositions marked **(sketch)** have a proof sketch only. Like the [U-own] items of report 09, each needs a careful proof before it is relied on (E9).
 - The concrete syntax is **provisional**. It is close to DLGP and Datalog and is used only to fix ideas; the abstract syntax in §1 is normative.
 - Running examples: E1-ex (default/exception), E2-ex (basket threshold), E3-ex (line manager), as in the README.
+- **Note on E3-ex.** This report illustrates E3-ex with `employee(X) -> hasManager(X, manager(X))`, mostly with lookup-before-invent on `recordedManager`. That is not the owner's actual rule, which is `employee(x), not isCompanyDirector(x) -> exists y managerOf(y, x)` (see [README Corrections](README.md#corrections)). The examples here remain valid illustrations of named functions and of D2, and are kept as they are.
+- **Terminology** (owner decision, 2026-10-01): a **labelled null** is an object produced in facts for an unknown individual (the standard term in databases and the chase literature); **existential variable** is used only for rule syntax (`∃y` in a rule head); "existential witness" is only an explanatory gloss.
+- **Intuition before formalism.** Each formal construct is preceded by a short plain-language intuition and a small example.
 
 ---
 
@@ -27,7 +30,7 @@ A signature `S = (Pred, Fun, Const)` consists of three sets.
   - `Sym`: symbolic constants (identifiers or IRIs), e.g. `paul`, `<http://ex.org/paul>`;
   - `Lit`: typed literals whose value lies in one of the datatype value spaces of §1.2.
 
-In addition, the term model has a set `Null` of **labelled nulls**, disjoint from everything above (D1, E5). F2 has no syntax that creates or mentions nulls. Nulls exist in the data model only so that F3 can be added without changing term identity. **[choice]** An F2 knowledge base whose input contains a null is rejected at load time (§11, OP-13).
+In addition, the term model has a set `Null` of **labelled nulls**, disjoint from everything above (D1, E5). F2 has no syntax that creates or mentions labelled nulls. They are a pure reservation in the term model, so that F3 can be added without changing term identity. **[choice] → D9**: an F2 knowledge base whose input contains a labelled null is rejected at load time (OP-13). Accepting RDF blank nodes as input is a future lead, to be adopted only after an impact study.
 
 ### 1.2 Datatypes
 
@@ -40,7 +43,7 @@ In addition, the term model has a set `Null` of **labelled nulls**, disjoint fro
 
 Justification:
 - **Exact decimals, no binary floats** (D1): business rules compare money amounts exactly (E2-ex: `200.00`). `𝔻` is closed under `+`, `−` and `×`, which is all that sums and prices need.
-- **`integer` is a subtype of `decimal`**, and literals denote values, not strings. So `2`, `2.0` and `2.00` are the **same term** (value identity, as in the XSD value space). The scale of a literal is not significant. Output uses a canonical form with trailing fractional zeros removed; formatting to a fixed scale is a presentation concern **[choice]** (OP-5).
+- **`integer` is a subtype of `decimal`**, and literals denote values, not strings. So `2`, `2.0` and `2.00` are the **same term** (value identity, as in the XSD value space). The scale of a literal is not significant. Output uses a canonical form with trailing fractional zeros removed; formatting to a fixed scale is a presentation concern **[choice] → default validated** (OP-5).
 - **Strings and symbols are distinct**: `"paul" ≠ paul`. Symbols carry identity (individuals); strings carry text.
 - **Booleans** are needed for flags coming from enterprise data. They are plain constants; there is no three-valued logic.
 - Not in v1: floats, dates and durations, language-tagged strings. Each can be added later as a new value space with its own order.
@@ -49,11 +52,12 @@ Justification:
 
 - **Variables** `Var`: identifiers starting with an upper-case letter, and `_` (anonymous; every occurrence is a fresh variable).
 - **Terms**: `t ::= X | c | f(t1,…,tn)` with `X ∈ Var`, `c ∈ Const`, `f ∈ Fun`, `n = ar(f)`. A term is **ground** if it has no variables. Ground terms are compared **syntactically** (free-constructor or Herbrand reading, [09 §1.1](09-skolem-function-frameworks.md)). For example `manager(paul) ≠ alice` and `manager(paul) ≠ manager(alice)`.
+  - **D10.** In v1, distinct Skolem terms denote distinct individuals (`manager(tom) ≠ manager(anna)`). Letting distinct terms co-refer is logically legitimate but complicates algorithms (counting, aggregates, joins). It is an **option** anticipated in the architecture, for example term ids with an indirection to a class representative, and may be activated later. How this option articulates with `@lookup` is open (OP-23, §1.5).
 - **Depth**: `depth(c) = 0` and `depth(f(t̄)) = 1 + max depth(tᵢ)`.
 - **Relational atom**: `p(t1,…,tn)` with `n = ar(p)`.
 - **Built-in atoms**:
   - *comparisons* `t1 op t2` with `op ∈ {=, !=, <, <=, >, >=}`;
-  - *assignments* `X = e`, where `X` is a variable and `e` an arithmetic expression built from terms with `+`, `−`, `*`, `/` and the functions `abs(e)`, `round(e,s)`, `round(e,s,mode)`, `div(e1,e2,s)`, `div(e1,e2,s,mode)`. Here `s` is an integer literal (the scale) and `mode ∈ {half_up, half_even, down, up, floor, ceiling}`.
+  - *assignments* `X = e`, where `X` is a variable and `e` an arithmetic expression built from terms with `+`, `−`, `*`, `/` and the functions `abs(e)`, `round(e,s,mode)`, `div(e1,e2,s,mode)`. Here `s` is an integer literal (the scale) and `mode ∈ {floor, ceil, truncate, round, bank_round}` (D13). The mode is **mandatory**: there is no default rounding mode.
 - **Aggregate atom**: `X = #op{ e, Y1,…,Yk : C }` with `op ∈ {count, sum, min, max}`:
   - `e` is a term or arithmetic expression (the aggregated value);
   - `Y1..Yk` are the **tuple keys**; the aggregated collection is a set of tuples `(e, Y1..Yk)`, so two items with the same price are not collapsed (ASP-style, [09 §5.2](09-skolem-function-frameworks.md));
@@ -69,7 +73,7 @@ Provisional syntax: `not p(X)`; `S > 200.00`; `T = P * Q`; `S = #sum{ P*Q, I : i
   - A head is a **conjunction**. With no existential variables this is pure sugar for `m` rules sharing the body. Named terms are identical across them, because they are the same terms.
   - Head terms may contain named functional terms, but **no arithmetic**: `p(X+1)` must be written `p(Y) :- …, Y = X+1`.
 - **Fact**: a rule with an empty body and ground head.
-  - **[choice]** In v1, facts are **function-free** (constants only, OP-4). Functional terms enter the model only through rules.
+  - **[choice] → D11**: facts **may contain named functional terms** (OP-4). The main use is the round-trip of answers: an AI agent stores an answer such as `manager(dave)` (in its output encoding, §5.2) and later sends it back as data or as a query constant; the engine parses it back into the structured term. Termination analysis must account for functional terms present in the data (§7.1).
   - The **data** `D` is the set of facts. A predicate may have both facts and rules (no strict EDB/IDB split).
 - **Integrity constraint (negative constraint)**: `! :- B1, …, Bk.`, optionally named `@constraint c: ! :- … .` Its answers are *violations*. Constraints never change the model (D2).
 - **Functional dependency**: `@fd p: A -> B.` with `A, B ⊆ {1..ar(p)}` disjoint position sets.
@@ -77,6 +81,8 @@ Provisional syntax: `not p(X)`; `S > 200.00`; `T = P * Q`; `S = #sum{ P*Q, I : i
   - FDs are **integrity constraints only**: they are checked and violations are reported. They are never used to equate terms (D2, option O1 of [09 §4](09-skolem-function-frameworks.md)).
 
 ### 1.5 Lookup-before-invent declarations
+
+*Intuition.* A named function such as `manager/1` invents an object `manager(dave)` when nothing better is known. Often, though, the data already says who the manager is. A lookup declaration tells the engine where to look first: "the manager of X is the Y recorded in `recordedManager(X, Y)`; invent `manager(X)` only if no such Y is recorded". §3.0 walks through this step by step on a small example before the formal translation.
 
 A **lookup declaration** for a function `f/n` has the form
 
@@ -88,14 +94,16 @@ where `X1..Xn, Y` are distinct variables and `λ` is a conjunction of positive r
 
 Intended meaning (D2): the value of `f(t̄)` is `v` whenever `λ` records `v` for `t̄`. Only when nothing is recorded for `t̄` is the fresh object `f(t̄)` invented. At most one lookup declaration per function symbol is allowed. A function without a lookup declaration is a pure constructor (option O0 of report 09).
 
-Each lookup declaration **implicitly declares** the integrity constraint "the recording is functional": `! :- λ[Y↦Y1], λ[Y↦Y2], Y1 != Y2` (the renaming applies to the non-argument variables). A violation is reported as a D2 conflict (OP-3).
+Each lookup declaration **implicitly declares** the integrity constraint "the recording is functional": `! :- λ[Y↦Y1], λ[Y↦Y2], Y1 != Y2` (the renaming applies to the non-argument variables). A violation is reported as a D2 conflict. What the engine should do with several recorded values is **not decided** (OP-3): it raises the uniqueness problem studied in [report 14](14-uniqueness-and-functionality.md). This report provisionally uses all values and reports a violation.
 
-**[choice]** The lookup source is an arbitrary conjunction, subject to stratification (§3). In the natural modelling of E3-ex, the recorded relation (`recordedManager`) is distinct from the derived one (`hasManager`). Using `hasManager` itself as the source would create a cycle, which is detected and rejected (§3.3). A sugar `p@db` ("the facts of `p` in `D` only") is proposed in OP-2 to make the common pattern one line.
+**[choice] → D14**: the lookup source may use any predicate, base or derived, provided the whole rule set remains stratifiable (§3). This is checked, and a rejection names the cycle (§3.3). In the natural modelling of the example, the recorded relation (`recordedManager`) is distinct from the derived one (`hasManager`). Using `hasManager` itself as the source would create a cycle through negation, which is detected and rejected (§3.0, §3.3). The `p@db` sugar ("the facts of `p` in `D` only") is **postponed** (D14, OP-2): the mechanism is validated without it first.
+
+**Articulation with co-reference and round-trip terms (open, OP-23).** `@lookup` resolves a function value at derivation time, without any equality reasoning: `manager(paul)` is never created when a manager of paul is recorded. The co-reference option of D10 would instead let an existing term `manager(paul)` be declared to denote the same individual as `alice`. The two must later be articulated, and which applies first is an open question (OP-23). A related case appears with D11: a functional term `manager(paul)` sent back in the data while `recordedManager(paul, alice)` is now recorded. In v1 (D10, no co-reference) the two remain distinct objects; whether the engine should warn about such a term is part of OP-23.
 
 ### 1.6 Queries and pre-registered queries
 
 - A **conjunctive query with negation** (NCQ) is `?(X1,…,Xk) :- B1,…,Bm.`: a rule whose head is the answer tuple. Its body may contain negated atoms, built-ins, aggregates and functional terms. A CQ is an NCQ without negation or aggregates. A **union** (UCQ, UNCQ) is a finite set of such queries with the same answer arity. Boolean queries have `k = 0`.
-- **Answer mode** `mode ∈ {all, constants}`: whether answer tuples containing functional terms are returned (§5.2). The default is `all` **[choice]** (OP-1).
+- **Answer mode** `mode ∈ {all, constants}`: whether answer tuples containing functional terms are returned (§5.2). The default is `all` **[choice] → default validated** (OP-1).
 - A **pre-registered query** is `@query name [mode] ?(X̄) :- … .`; several declarations with the same name form a union. Pre-registered queries are the only candidates for a-priori rewriting (§8.3).
 
 A **knowledge base** is `K = (S, P, D, Λ, C)`: signature, rules, facts, lookup declarations, and constraints (including FDs). Queries are posed against `K`.
@@ -126,7 +134,7 @@ A lookup body `λ` must bind `X1..Xn` and `Y`. Unsafe programs are rejected.
 
 ### 2.2 Typing (soft typing)
 
-**[choice]** v1 uses *soft typing* (OP-12):
+**[choice] → default validated**: v1 uses *soft typing* (OP-12):
 - Optional declarations `@type p(τ1,…,τn).` with `τ ∈ {any, symbol, string, integer, decimal, boolean, term}`. `term` means "a functional term".
 - **Static check**: type inference propagates declared types through rules. A rule is rejected when an arithmetic operand, a `<`-comparison argument, or a `#sum` value is **certainly** non-numeric (e.g. bound to a `symbol`-typed position, or to a functional term).
 - **Dynamic check**: every declared `@type` is also an integrity constraint on the model. A fact violating it is reported as a violation; it is not rejected.
@@ -136,7 +144,48 @@ A lookup body `λ` must bind `X1..Xn` and `Y`. Unsafe programs are rejected.
 
 ## 3. Stratification
 
+### 3.0 Lookup-before-invent, step by step
+
+**Intention, in one sentence.** When the data records a value for `f(x)`, use it; invent the new object `f(x)` only when nothing is recorded.
+
+**Example** (the manager example, also used in §10.3):
+
+```
+@function manager/1.
+@lookup manager(X) = Y :- recordedManager(X, Y).
+
+employee(paul). employee(alice). employee(dave).
+recordedManager(paul, alice).
+
+hasManager(X, manager(X)) :- employee(X).                          % r1
+```
+
+**The two-rule translation.** The engine replaces `r1` by two ordinary rules, one for each case:
+
+```
+hasManager(X, Y)          :- employee(X), recordedManager(X, Y).      % r1.look: a manager is recorded, use it
+hasManager(X, manager(X)) :- employee(X), not recordedManager(X, _).  % r1.inv:  nothing recorded, invent
+```
+
+`not recordedManager(X, _)` reads "X has no recorded manager at all". The general translation of §3.1 writes `$L_manager(X, Y)` for the first condition and `$D_manager(X)` for "some value is recorded for X". `$L_f` and `$D_f` are only technical names for these two conditions; they exist because a lookup source may be a conjunction rather than a single predicate.
+
+**Result.**
+
+| Employee | Recorded manager? | Rule that fires | `hasManager` fact |
+|---|---|---|---|
+| paul | yes, alice | `r1.look` | `hasManager(paul, alice)` (recorded) |
+| alice | no | `r1.inv` | `hasManager(alice, manager(alice))` (invented) |
+| dave | no | `r1.inv` | `hasManager(dave, manager(dave))` (invented) |
+
+No `manager(paul)` is ever created.
+
+**Implicit uniqueness constraint.** The mechanism presumes at most one recorded manager per employee. If `recordedManager(paul, bob)` is added, `r1.look` fires twice and paul gets two managers. The engine reports a violation of the implicit constraint "the recording is functional" (§1.5). What it should do beyond reporting is not decided: see OP-3 and [report 14](14-uniqueness-and-functionality.md).
+
+**Why `recordedManager` must differ from `hasManager`.** Suppose the source were the derived relation itself: `@lookup manager(X) = Y :- hasManager(X, Y).` Then `r1.inv` becomes `hasManager(X, manager(X)) :- employee(X), not hasManager(X, _).` Is `hasManager(dave, manager(dave))` true? If it is, dave has a manager, so the rule's condition fails and nothing derives it; if it is not, the rule derives it. `hasManager` depends negatively on itself: a cycle through negation, with no stratification and no perfect model. The analyser rejects such a program and names the cycle (§3.3). Keeping the recorded facts in `recordedManager` and the derived ones in `hasManager` avoids the cycle. D14 allows derived predicates as lookup sources, as long as no such cycle arises.
+
 ### 3.1 The lookup translation `lb(K)`
+
+*Intuition.* The general translation does for every rule what §3.0 did for `r1`. A rule may contain several lookup terms, e.g. `peer(manager(X), mentor(X)) :- employee(X)` with both functions lookup-declared. Each term may independently be recorded or not, so the rule is split once per term, innermost term first: here into four rules (both recorded, only the manager, only the mentor, neither).
 
 Stratification and semantics are defined on the translated program `lb(K)`, which eliminates lookup declarations. For every `f` with a lookup declaration `f(x̄) = y :- λ`, add:
 
@@ -157,6 +206,8 @@ Remarks:
 - Constraints (FDs, `@type`, lookup functionality) become rules `$viol_c(x̄) :- body`.
 
 ### 3.2 Dependency graph and stratifiability
+
+*Intuition.* `not q(…)` asks "is `q(…)` absent?". The question only makes sense once `q` is fully computed. Stratification orders the predicates in layers so that every negated (or aggregated) predicate is computed in a strictly lower layer. In E1-ex, `specificConditionApplies` (layer 1) is finished before `generalConditionsApply` (layer 2) asks whether it is absent. A program such as `p(X) :- q(X), not p(X)` has no such order and is rejected. Positive recursion (`ancestor` through `parent`) is fine inside a layer.
 
 The **dependency graph** `G(K)` has one node per predicate of `lb(K)`, one node per query, and edges `h → q` for every rule of `lb(K)` with head predicate `h` (or query node `h`) and a body literal on `q`:
 - **positive** edge when `q` occurs in a positive relational atom;
@@ -184,7 +235,7 @@ Stratification is **predicate-level** ([07 §7, item 14](07-sota-theory.md)). A 
 The analyser must report such cycles with:
 - the function `f`;
 - the cycle as a chain of original rules;
-- a remedy: record the source in a separate predicate, or use `p@db` (OP-2).
+- a remedy: record the source in a separate predicate (the `p@db` sugar is postponed, D14).
 
 Example: `@lookup manager(X)=Y :- hasManager(X,Y).` with the rule `hasManager(X, manager(X)) :- employee(X).` is rejected with the cycle `hasManager →(lookup) $D_manager → hasManager`.
 
@@ -199,6 +250,8 @@ Example: `@lookup manager(X)=Y :- hasManager(X,Y).` with the rule `hasManager(X,
 - Built-in atoms have a **fixed interpretation** (§4.3). An interpretation is a subset `I ⊆ B`. Distinct ground terms denote distinct objects (unique names on terms).
 
 ### 4.2 Perfect model
+
+*Intuition.* Compute layer by layer. Within a layer, apply the rules again and again until nothing new appears; negations and aggregates read only the finished lower layers. The perfect model is what is obtained after the last layer. In E1-ex, layer 1 gives `specificConditionApplies(c2)` and `specificConditionApplies(c3)`; layer 2 then gives `generalConditionsApply(c1)`, because `c1` is absent from layer 1's finished result.
 
 Let `lb(K)` be stratified by `σ` with strata `P_0, …, P_n`. Let `M_{-1} = D`. For each stratum `i`:
 - `T_i(I)` = `I` ∪ the heads `Hθ` of all ground instances `θ` of rules of `P_i` such that:
@@ -222,11 +275,17 @@ Every built-in is a fixed relation on `U`:
 - `=` and `!=` are identity and non-identity of ground terms (numeric literals are compared by value, since they are the same term).
 - `<`, `<=`, `>`, `>=` hold only between two numbers, two strings or two booleans, using the order of §1.2. They are false between different datatypes and on symbols or functional terms (with a diagnostic).
 - `+`, `−`, `*` are the exact operations on `𝔻`. There is **no overflow** in the semantics (unbounded precision).
-- **Division** `e1 / e2` **[choice]** (OP-6) is a *partial* function:
+- **Division** `e1 / e2` **[choice] → default validated, mode mandatory per D13** (OP-6) is a *partial* function:
   - defined iff `e2 ≠ 0` and the exact rational quotient lies in `𝔻`, i.e. its reduced denominator has only the prime factors 2 and 5;
   - otherwise the assignment does not hold for that instance (the rule does not fire) and a diagnostic `arithmetic-undefined` is attached to the result.
-  - `div(e1, e2, s[, mode])` is total for `e2 ≠ 0`: it is the exact quotient rounded to scale `s`.
-- **Rounding** `round(e, s[, mode])` rounds to `s` fractional digits. **[choice]** The default mode is `half_up` (half away from zero, commercial rounding; OP-7). `half_even` (banker's rounding) and the directed modes are available explicitly.
+  - `div(e1, e2, s, mode)` is total for `e2 ≠ 0`: it is the exact quotient rounded to scale `s` with the given mode.
+- **Rounding** `round(e, s, mode)` rounds to `s` fractional digits. **[choice] → D13** (OP-7): five modes, and the modeller must always choose one; there is **no default**.
+  - `floor`: towards −∞ (`floor(-2.5, 0) = -3`);
+  - `ceil`: towards +∞ (`ceil(-2.5, 0) = -2`);
+  - `truncate`: towards zero (`truncate(-2.7, 0) = -2`);
+  - `round`: to nearest, ties half-up (`round(2.5, 0) = 3`);
+  - `bank_round`: to nearest, ties half-even (`bank_round(2.5, 0) = 2`, `bank_round(3.5, 0) = 4`).
+  - To confirm with the owner: the tie direction of `round` on negative numbers. Read literally, "half-up" gives `round(-2.5, 0) = -2` (towards +∞); the commercial reading used in the draft of this report (half away from zero) gives `-3`.
 - **Implementation limit.** Implementations bound the number of significant digits (a resource budget, §6.4). Exceeding it is *not* a semantic value: it is treated as budget exhaustion, so the affected evaluation unit becomes incomplete. The model is never silently altered.
 
 Because built-ins are relations, an undefined operation makes an atom false. That is a definition, not an approximation, so it never threatens soundness.
@@ -242,7 +301,7 @@ a **set of tuples**. The value is computed on the first components, counted with
 - `#sum` is the exact sum in `𝔻`. It is defined only if every value is numeric; otherwise it has no value and a diagnostic is raised;
 - `#min` and `#max` are defined only if `Coll(θ)` is non-empty and its values all belong to one ordered datatype (numbers, or strings). Collections containing functional terms, symbols or mixed datatypes have no `#min`/`#max`.
 
-**Groups** **[choice]** (OP-9). Two cases arise, depending on where the group-by variables are bound.
+**Groups** **[choice] → default validated** (OP-9). Two cases arise, depending on where the group-by variables are bound.
 - **Grounded groups**: every group-by variable is also bound outside the aggregate, as in `total(B,S) :- basket(B), S = #sum{…}`. The group exists for every such binding, even if `Coll(θ)` is empty. On an empty collection, `#count = 0`, `#sum = 0`, and `#min`/`#max` have no value, so the rule does not fire.
 - **Implicit groups** (SQL `GROUP BY` reading): some group-by variable occurs only inside the aggregate, as in `total(B,S) :- S = #sum{ P*Q, I : inBasket(B,I,Q), price(I,P) }`. The groups are the bindings of `ḡ` for which `C` has at least one solution. Empty groups do not exist.
 
@@ -262,7 +321,7 @@ For a model `M ⊇ M_{σ($D_f)}` and ground `s̄`, define the **value set** `val
 
 *Sketch.* By stratification, `$D_f` lies strictly below every rule using `f`, so its extension is fixed when those rules are evaluated. A ground instance of an original rule with `k` lookup terms corresponds to the instances of its `2^k` variants whose look/invent pattern agrees with `$D_f` in `M`. `r_inv` fires exactly for unrecorded arguments, and `r_look` fires once per recorded value. Point 1 follows because only `r_inv` variants keep `f(s̄)`. Point 2 follows by unfolding, which preserves perfect models for stratified programs [U, classical].
 
-Caveat (only under a D2 conflict): if `$L_f(s̄,·)` has several values, two distinct terms `f(s̄)` and `f(s̄')` that coincide at run time (`s̄ = s̄'`) may be resolved to different recorded values in the same rule instance. The functionality constraint reports the conflict.
+Caveat (only under a D2 conflict, whose treatment is open, OP-3): if `$L_f(s̄,·)` has several values, two distinct terms `f(s̄)` and `f(s̄')` that coincide at run time (`s̄ = s̄'`) may be resolved to different recorded values in the same rule instance. The functionality constraint reports the conflict.
 
 ---
 
@@ -282,9 +341,11 @@ Caveat (only under a D2 conflict): if `$L_f(s̄,·)` has several values, two dis
 
 `Ans(Q,K)` may be **infinite** (E3-ex trap). Only a finite part can then be returned, and the status says so.
 
-### 5.2 Functional terms in answers **[choice]** (OP-1)
+### 5.2 Functional terms in answers **[choice] → default validated** (OP-1)
 
 Recommended: in mode `all` (default), answers **may contain named functional terms**, returned as structured ground terms (`manager(dave)`). The presentation marks the term kind: constant, typed literal, or functional term, plus labelled null in F3. Named terms are stable, meaningful identifiers (the reason for choosing F2). In mode `constants`, tuples containing a functional term are dropped. This mode is used for Graal-oracle comparison (§9) and enables query-specific pruning (§8.3).
+
+**Output encoding and round-trip (D11).** When answers leave the engine as flat values (text, JSON, RDF), a functional term is encoded as a single identifier that is unambiguous and parseable. A candidate form: a `skolem:` prefix, the function name, then the normalised argument values with unambiguous delimiters and escaping, nested for nested terms (e.g. `skolem:manager(dave)`, `skolem:manager(skolem:manager(dave))`). The exact syntax is to be specified. When such an identifier comes back as input (data or query constant), it is parsed back into the structured term, so an AI agent that stores an answer and sends it back refers to the same object. Arguments are normalised (canonical decimals, §1.2), so the encoding is a bijection between ground functional terms and encoded identifiers.
 
 Output order is deterministic. A fixed total order on ground terms is used for presentation only:
 - by kind: numbers < strings < booleans < symbols < functional terms;
@@ -306,6 +367,8 @@ Minimal explanations are not required in v1.
 ---
 
 ## 6. Soundness under non-termination (E1)
+
+*Intuition.* Sometimes the engine has to stop computing a layer early: an infinite chain of invented managers, or a budget. The facts it has found are still true, but some facts may simply not have been found yet. Positive reasoning on top of such a layer stays safe: it finds fewer answers, never wrong ones. Negation on top is dangerous. Take `employee(Y) :- hasManager(X, Y)` and `externalContact(P) :- person(P), not employee(P)`. If the `employee` layer is cut at depth 3 while `employee(bob)` would only be derived at depth 5, then `externalContact(bob)` looks true although it is false. The soundness rule N1 (§6.2) therefore forbids returning results that read an unfinished layer through negation or aggregation; such results get the status UNKNOWN.
 
 ### 6.1 The problem
 
@@ -383,6 +446,8 @@ Semantics:
 
 ## 7. Termination analysis
 
+*Intuition.* Before running, the analyser tries to prove that each component will finish on any data. The danger is a cycle in which a rule builds a bigger term from a term produced by the same cycle: `hasManager(X, manager(X))` feeds `employee(manager(X))`, which feeds `hasManager(manager(X), manager(manager(X)))`, and so on. The tests of §7.2 look for such cycles, from the cheapest test to the most expensive. They first ignore negation and arithmetic (the "abstraction"): ignoring them only allows more derivations, so a proof of termination for the larger program also covers the real one. E1-ex is certified; the E3-ex trap of §10.4 is not, and the analyser names the cycle.
+
 ### 7.1 What is certified
 
 A unit `C` is **statically certified** if its **cone program** terminates for every finite function-free `D`. The cone program consists of the rules of `lb(K)` whose heads are in `C` or in units reached from `C`. Certification is done on an **abstraction**, because the critical-instance argument fails with negation and arithmetic ([09 §2](09-skolem-function-frameworks.md), last row).
@@ -393,6 +458,10 @@ A unit `C` is **statically certified** if its **cone program** terminates for ev
 3. replace every aggregate atom by a positive atom over a fresh predicate that holds the group key and the result. Its rule is non-recursive by §3.2, and its result position is fed by a free term over the group key.
 
 **Proposition 4 (sketch).** If `LHM(P^abs ∪ D)` is finite for every finite function-free `D`, then every unit of the cone reaches its fixpoint in finitely many rounds, for every finite function-free `D`.
+
+**Data with functional terms (D11).** Proposition 4 is stated for function-free data. Since D11 allows functional terms in data, the analysis must account for them:
+- if no rule of the cone has a functional term in a **body** atom, data terms can only be bound to variables, compared for equality and copied. They then behave like opaque constants, and Proposition 4 applies with them as constants (sketch);
+- otherwise, rules can take data terms apart (matching `q(manager(X))` against `q(manager(manager(paul)))`). The subterms of finite data are finite, so a similar result is expected [U-own], but it is not proven. Until it is, such a unit is not statically certified when the data contains functional terms: it can be at best COMPLETE-DYNAMIC.
 
 *Sketch.*
 - Deleting negative literals and filters only enables more rule instances ([09 §5.1](09-skolem-function-frameworks.md)).
@@ -414,14 +483,14 @@ The criteria are run on `P^abs` of each unit's cone, **cheapest first**, stoppin
 | 6 | **MFA** | Skolem chase of `P^abs` on the critical instance; fails iff a cyclic term appears. Named symbols are used as-is | 2EXPTIME, under an analysis budget |
 
 Notes:
-- The critical-instance property holds for `P^abs`: it is positive, built-in-free and has function-free data ([09 §2](09-skolem-function-frameworks.md), [U-own]). This is why the abstraction is applied first, and why OP-4 (function-free facts) matters.
+- The critical-instance property holds for `P^abs`: it is positive, built-in-free and has function-free data ([09 §2](09-skolem-function-frameworks.md), [U-own]). This is why the abstraction is applied first. With functional terms in data (D11, OP-4), see the restriction in §7.1.
 - The inclusions WA ⊆ JA ⊆ MSA ⊆ MFA are expected to hold for pooled named functions as for existential rules [U-own]. AR and Γ-acyclicity are incomparable to them in general, so they are tried as well.
 - A successful MFA run yields a **checkable certificate**: the finite critical-instance chase ([09 §7, item 10](09-skolem-function-frameworks.md)).
 - **Not in the v1 static portfolio**:
   - RJA/RMFA: different chase semantics, applicable only via `T(P)` under lookup ([09 §3](09-skolem-function-frameworks.md));
   - FDNC and finitary or finitely recursive recognition: goal-directed decidability. Recognition of finitary programs is undecidable, and FDNC recognition is a research item (OP-15).
 
-  For goal-directed cases, v1 relies on **dynamic** completion of tabled evaluation (§8.2).
+  For goal-directed cases, the plan relies on **dynamic** completion of tabled evaluation (§8.2), available once backward chaining is implemented (after v1, D16).
 - **Data-dependent termination** (E3-ex under lookup when all chains close) is not certified statically. It surfaces as COMPLETE-DYNAMIC. Conditional certificates ("terminates whenever `D` satisfies constraint χ") are future work ([09 §7, item 4](09-skolem-function-frameworks.md)).
 
 ### 7.3 Labelling and output
@@ -437,6 +506,8 @@ Labels are computed per SCC in topological order and aggregated per stratum and 
 ---
 
 ## 8. Strategies (E10, D5)
+
+**Implementation stages (D16).** v0 and v1 implement only §8.1 (pure chase, i.e. materialisation): no rewriting and no backward chaining. Rewriting (§8.3) or backward chaining (§8.2) comes next, then the hybrid strategy (§8.4). All are defined now so that tests can be written and the architecture anticipates them. Until a strategy is implemented, queries use §8.1 and get the status that §6 gives them.
 
 All strategies compute answers of the same `PM(K)` and obey §6: units, statuses and rule N1.
 
@@ -458,12 +529,12 @@ All strategies compute answers of the same `PM(K)` and obey §6: units, statuses
 - **Definition**: for a pre-registered query `Q`, compute a **rewriting** `R_Q`. This is a finite UNCQ over **base predicates** such that `Ans(Q, K) = eval(R_Q, D ∪ B)` for every `D`, where `B` is the materialised extension of the base predicates.
   - Base predicates are those with facts only, plus, in hybrid mode, materialised predicates.
   - The rewriting is computed by exhaustive unfolding with SLD resolution on `lb(K)`. Function terms unify structurally, and no piece-unifiers are needed because F2 has no existential variables. It saturates up to CQ subsumption (homomorphism check).
-- **Pruning**: a CQ is dropped when:
-  - it contains a functional term in an atom over a predicate that has no rules, since facts are function-free (OP-4);
-  - in mode `constants`, it binds an answer variable to a functional term.
+- **Pruning**: in mode `constants`, a CQ that binds an answer variable to a functional term is dropped. (The draft also dropped CQs with a functional term in an atom over a predicate without rules, which relied on function-free facts; this pruning is withdrawn by D11.)
 - **Useful only if bounded.** If saturation does not finish within the analysis budget, no rewriting is stored and the query falls back to §8.1/§8.2. A bounded rewriting is a static proof, hence COMPLETE-STATIC.
 
 ### 8.4 Rewriting under negation: the hybrid strategy (D5)
+
+Defined here, **not implemented in v1** (D16, OP-17).
 
 **Definition.** Let `Q` be a query, and let `N(Q)` be the set of predicates that `Q` reaches through a strict edge (negated, aggregated, or `$D_f` through lookup).
 1. Every predicate in `N(Q)`, together with its cone, is **materialised** by the chase (§8.1).
@@ -478,7 +549,7 @@ All strategies compute answers of the same `PM(K)` and obey §6: units, statuses
 
 **v1 guard (D5).**
 - *Pre-computed* (stored) rewritings are allowed **only for queries whose node reaches no strict edge** in `G(K)`, directly or transitively.
-- **[choice]** The guard counts aggregate edges and lookup-induced edges as "negation", since both are non-monotone (OP-16).
+- **[choice] → D15**: the guard stays strict. It counts aggregate edges and lookup-induced edges as "negation", since both are non-monotone (OP-16).
 - Queries outside the guard use §8.1, §8.2 or the hybrid strategy computed at query time.
 
 **Invalidation.**
@@ -487,7 +558,7 @@ All strategies compute answers of the same `PM(K)` and obey §6: units, statuses
 
 ### 8.5 Combinations and default selection policy
 
-Selection is **per query and per unit**, recorded in the trace. The default policy is owner-tunable:
+Selection is **per query and per unit**, recorded in the trace. In v1 (D16) only materialisation exists, so only step 2 and the materialisation parts of step 3 apply. The full default policy, owner-tunable, is:
 1. If `Q` has a valid stored bounded rewriting, evaluate it: COMPLETE-STATIC.
 2. Otherwise, if the cone of `Q` is certified, use incremental materialisation: COMPLETE-STATIC.
 3. Otherwise:
@@ -502,6 +573,8 @@ Selection is **per query and per unit**, recorded in the trace. The default poli
 ## 9. Relationship with existential rules (D3)
 
 ### 9.1 The function-graph translation `T(P)`
+
+*Intuition.* `T(P)` turns each named function `f` into an ordinary relation `F_f(arguments, value)` together with an existential rule saying "some value exists". For instance `hasManager(X, manager(X)) :- employee(X)` becomes `employee(X) → ∃Y F_manager(X, Y)` and `employee(X) ∧ F_manager(X, Y) → hasManager(X, Y)`. An existential-rule engine such as Graal can then run the program: where F2 has the term `manager(dave)`, the chase produces a labelled null. For a lookup-declared function, a **bridge rule** `recordedManager(X, Y) → F_manager(X, Y)` supplies the recorded values, so (with the Datalog-first chase) no labelled null is created for paul.
 
 This is defined on the positive part of `lb(K)`: rules without negation, aggregates or arithmetic. For each `f ∈ Fun`, a fresh predicate `F_f/(ar(f)+1)` is introduced. Each rule is flattened innermost-first ([09 §1.2](09-skolem-function-frameworks.md)):
 - a head term `f(t̄)` yields the existence rule `B → ∃Y F_f(t̄, Y)` and the use rule `B ∧ F_f(t̄, Y) → H[Y]`;
@@ -518,8 +591,8 @@ Then for every (U)CQ `Q` in mode `constants`, `Ans(Q, K)` equals the certain ans
 
 *Sketch.*
 - Without lookup, this is Proposition 1 of report 09.
-- With lookup, the Datalog-first restricted chase of `T(K) ∪ D` fires the bridge first. The existence rule then fires only for unrecorded tuples, which reproduces `PM(K)` up to renaming `f(s̄) ↦` null (Prop. 2.3).
-- Any other chase result `J` (e.g. oblivious, with extra null witnesses for recorded tuples) maps homomorphically into this model while fixing constants: map each extra witness to the recorded value, which is available because `F_f(s̄, v)` holds by the bridge. Hence constant answers coincide.
+- With lookup, the Datalog-first restricted chase of `T(K) ∪ D` fires the bridge first. The existence rule then fires only for unrecorded tuples, which reproduces `PM(K)` up to renaming `f(s̄) ↦` labelled null (Prop. 2.3).
+- Any other chase result `J` (e.g. oblivious, with extra labelled nulls for recorded tuples) maps homomorphically into this model while fixing constants: map each extra witness to the recorded value, which is available because `F_f(s̄, v)` holds by the bridge. Hence constant answers coincide.
 - FDs and other constraints do not change `PM`, so they do not affect this statement. Only their violations differ, and they are checked by the second oracle.
 
 ### 9.2 Graal as oracle
@@ -592,6 +665,8 @@ freeDelivery(B) :- total(B, S), S > 200.00.
 
 ### 10.3 E3-ex: the line manager, with lookup-before-invent
 
+This is the example explained step by step in §3.0, written here with the technical names of §3.1. It illustrates D2; it is not the owner's actual E3-ex rule (see [README Corrections](README.md#corrections)).
+
 ```
 @function manager/1.
 @lookup manager(X) = Y :- recordedManager(X, Y).
@@ -611,7 +686,7 @@ hasManager(X, manager(X)) :- employee(X).                          % r1
 - **Perfect model**: `hasManager(paul, alice)`, `hasManager(alice, manager(alice))`, `hasManager(dave, manager(dave))`. No `manager(paul)` is invented (Prop. 2.1). There are no violations.
 - **Analyser**: `hasManager` is non-recursive, WA. Certified. `?(X,M) :- hasManager(X,M).` → the 3 tuples above, COMPLETE-STATIC.
 - **D2 conflict**: add `recordedManager(paul, bob).` Then `hasManager(paul, alice)` and `hasManager(paul, bob)` both hold. Two violations are reported: of the lookup functionality constraint, and of `@fd hasManager: 1 -> 2` with witness `(paul, alice, bob)`. There is no merging and no inconsistency explosion.
-- **Rejected variant**: `@lookup manager(X) = Y :- hasManager(X, Y).` is non-stratifiable (§3.3). The error names the cycle `hasManager —lookup→ $D_manager → hasManager` and suggests `recordedManager` or `hasManager@db`.
+- **Rejected variant**: `@lookup manager(X) = Y :- hasManager(X, Y).` is non-stratifiable (§3.3). The error names the cycle `hasManager —lookup→ $D_manager → hasManager` and suggests a separate source predicate such as `recordedManager` (the `@db` sugar is postponed, D14).
 - **O0 contrast** (no `@lookup`, data fact `hasManager(paul, alice)`): the model contains both `hasManager(paul, alice)` and `hasManager(paul, manager(paul))`, and the FD reports the conflict.
 - **Stored rewriting** (O0 contrast only): `@query mgrOfPaul ?(M) :- hasManager(paul, M).` passes the guard, because O0 introduces no strict edge. It yields the bounded rewriting `{ ?(M) :- hasManager(paul,M) [facts] ; ?(manager(paul)) :- employee(paul) }`. The lookup version is excluded by the guard, since it reaches `$D_manager` negatively.
 
@@ -665,7 +740,7 @@ unit S2b = {headcount}         term-free, but cone contains S1  -> not certified
 | `?(X,Y) :- hasManager(X,Y).` | materialisation | 6 tuples (3 closed-chain + 3 dave-chain) | NOT-GUARANTEED (sound-partial: positive path to `S1`) |
 | `?(X) :- employee(X).` mode `constants` | materialisation | `{paul, alice, ceo, dave}` | NOT-GUARANTEED (in fact complete; see OP-14) |
 | `?(P) :- externalContact(P).` | materialisation | none | UNKNOWN: negates `employee`, whose unit `S1` hit budget `depth` |
-| same | backward chaining (§8.2) | `{bob}` | COMPLETE-DYNAMIC |
+| same | backward chaining (§8.2, after v1 per D16) | `{bob}` | COMPLETE-DYNAMIC |
 | `?(N) :- headcount(N).` | any | none | UNKNOWN (aggregate over `S1`; in fact the collection is infinite, so there is no value) |
 | constraint `@fd hasManager` | materialisation | no violation found | NOT-GUARANTEED ("no violation" not established) |
 
@@ -676,7 +751,7 @@ Why backward chaining completes `externalContact`:
 - so the table of `employee(bob)` is completed with no answer, and `not employee(bob)` is decided;
 - `employee(paul)` is a fact.
 
-This illustrates the combination policy (§8.5): the materialisation status is UNKNOWN, while the goal-directed status is complete although `PM(K)` is infinite.
+This illustrates the combination policy (§8.5): the materialisation status is UNKNOWN, while the goal-directed status is complete although `PM(K)` is infinite. In v1 (materialisation only, D16), the result is UNKNOWN.
 
 **Oracles**:
 - Graal on `T(K)` plus the bridge (EXACT fragment for `hasManager`/`employee` in mode `constants`). It agrees on Run 1. On Run 2 its restricted chase does not terminate either, so only the lower-bound check on budgeted outputs is possible.
@@ -684,32 +759,38 @@ This illustrates the combination policy (§8.5): the materialisation status is U
 
 ---
 
-## 11. Open points requiring owner validation
+## 11. Open points and their resolution
 
-| # | Point | Options | Recommended default |
-|---|---|---|---|
-| OP-1 | Functional terms in answers (§5.2) | (a) returned as structured terms; (b) constants only; (c) mode per query | **(c)**, default mode `all` (a); `constants` for oracle tests and pruning |
-| OP-2 | Lookup source (§1.5) | (a) arbitrary conjunction, stratification-checked; (b) data only; (c) (a) plus `p@db` sugar (facts of `p` in `D`) | **(c)**: lets E3-ex write `@lookup manager(X)=Y :- hasManager@db(X,Y)` without a second predicate |
-| OP-3 | Several recorded values for `f(s̄)` (D2 conflict) | (a) use all values and report; (b) use none (invent) and report; (c) reject the KB | **(a)**: sound w.r.t. the data, visible through violations, no explosion |
-| OP-4 | Functional terms in facts | (a) forbidden in v1; (b) allowed for functions without lookup | **(a)**: keeps the critical-instance property (§7), rewriting pruning (§8.3) and Graal comparison simple |
-| OP-5 | Numeric identity and presentation | (a) `integer ⊂ decimal`, value identity (`2 = 2.00`), canonical output; (b) scale-preserving terms; (c) (a) plus a declared presentation scale `@type p(decimal(2))` | **(a)** now, **(c)** later |
-| OP-6 | Division | (a) partial exact `/` plus explicit `div(…, s, mode)`; (b) rationals as value space; (c) evaluation error aborts the run | **(a)**: exact, never silently rounded, with a diagnostic on undefined instances |
-| OP-7 | Default rounding mode | `half_up` (away from zero) / `half_even` | **`half_up`**: matches business expectations; `half_even` available explicitly |
-| OP-8 | Numeric limit | digits budget; default value | budget `digits = 1000` significant digits, overflow = budget exhaustion (never a value) |
-| OP-9 | Empty groups (§4.4) | grounded groups exist (`count = sum = 0`, no min/max) vs SQL-only groups | **both readings**, chosen syntactically by where group-by variables are bound |
-| OP-10 | Granularity of the soundness rule (§6) | (a) unit-level (predicate/SCC, table); (b) answer-level via provenance (an answer is sound if some derivation avoids exposed checks); (c) plus monotone-aggregate edges treated as positive | **(a)** in v1; (b) and (c) as later refinements |
-| OP-11 | What UNKNOWN returns | (a) nothing, plus blocking units; (b) a separately flagged "unverified preview" on explicit request | **(a)**, with (b) as an opt-in debug mode, never mixed with sound results |
-| OP-12 | Typing | soft typing (static rejection of certain errors, `@type` as constraints) / strict typing | **soft typing** |
-| OP-13 | Labelled nulls in F2 input | reject at load / accept as opaque constants | **reject** (they have no F2 semantics; kept for F3) |
-| OP-14 | Constant-answer pruning analysis (E3-ex Run 2: the constant part is finite and computed, but not known to be) | v1 none / term-flow analysis proving that function terms cannot flow back into constant positions | **none in v1**; research item |
-| OP-15 | Goal-directed decidability classes (FDNC, finitary, finitely recursive) | static recognition in v1 / dynamic tabling completion only | **dynamic only** in v1; FDNC-shape recogniser later |
-| OP-16 | Scope of the D5 guard | strict edges = negation only / negation + aggregates / + lookup-induced negation | **all three** (conservative). Consequence: no stored rewriting for queries touching a lookup-declared function; they use the hybrid strategy at query time |
-| OP-17 | Hybrid rewriting (§8.4) in v1 | implement / defer (materialisation + backward chaining cover these queries) | **defer to v1.1**; the definition is fixed now so that tests can be written |
-| OP-18 | Invalidation granularity | any rule change / cone fingerprint | **any rule or declaration change** in v1; cone fingerprint later |
-| OP-19 | Default budgets | values for `rounds`, `depth`, `facts`, `time` | deterministic defaults `depth = 16` and `rounds = 10⁴`, plus `time` as a safety net; tests set budgets explicitly |
-| OP-20 | General integrity constraints `! :- body` beyond FDs | include / FDs only | **include** (same machinery; FDs are sugar) |
+Owner validation of 2026-10-01: every point is settled except OP-3. "Default validated" means the recommended default was accepted as is; a decision id means the decision replaces or adjusts the recommended default.
 
-**Points where the owner decisions interact non-trivially** (for validation):
-- **D2 + D5**: lookup-before-invent is *defined* by a translation into stratified negation. Under the literal D5 guard, every query touching a lookup-declared function is excluded from stored rewriting, even when, as in §10.3, the negation is harmless for constant answers (Prop. 5). A refinement that excludes lookup-induced edges from the guard is possible, but needs its own proof (OP-16).
-- **D2 + E3-ex**: the natural modelling `@lookup manager ← hasManager` is exactly the non-stratifiable case D2 asks to reject. Hence the `recordedManager` / `@db` pattern (OP-2).
-- **E1 + negation**: soundness is guaranteed only through rule N1. The consequence is that, in practice, programs with a non-certified recursive SCC below a negation return UNKNOWN under materialisation, unless goal-directed evaluation completes.
+| # | Point | Options | Recommended default (draft) | Status |
+|---|---|---|---|---|
+| OP-1 | Functional terms in answers (§5.2) | (a) returned as structured terms; (b) constants only; (c) mode per query | **(c)**, default mode `all` (a); `constants` for oracle tests and pruning | default validated; output encoding per D11 |
+| OP-2 | Lookup source (§1.5) | (a) arbitrary conjunction, stratification-checked; (b) data only; (c) (a) plus `p@db` sugar (facts of `p` in `D`) | (c) | **D14**: (a), any predicate (base or derived) if the whole rule set stays stratifiable; `p@db` sugar postponed |
+| OP-3 | Several recorded values for `f(s̄)` (D2 conflict) | (a) use all values and report; (b) use none (invent) and report; (c) reject the KB | (a), plus an optional strict mode | **NOT DECIDED**: uniqueness problem, studied in [report 14](14-uniqueness-and-functionality.md); (a) is a provisional proposal only |
+| OP-4 | Functional terms in facts | (a) forbidden in v1; (b) allowed for functions without lookup | (a) | **D11**: allowed; output encoding parsed back (round-trip, §5.2); termination analysis accounts for them (§7.1) |
+| OP-5 | Numeric identity and presentation | (a) `integer ⊂ decimal`, value identity (`2 = 2.00`), canonical output; (b) scale-preserving terms; (c) (a) plus a declared presentation scale `@type p(decimal(2))` | **(a)** now, **(c)** later | default validated |
+| OP-6 | Division | (a) partial exact `/` plus explicit `div(…, s, mode)`; (b) rationals as value space; (c) evaluation error aborts the run | (a) | (a) validated, with a mandatory mode (**D13**) |
+| OP-7 | Default rounding mode | `half_up` (away from zero) / `half_even` | `half_up` | **D13**: five modes `floor`, `ceil`, `truncate`, `round` (half-up), `bank_round` (half-even); no default. Tie direction of `round` on negatives to confirm (§4.3) |
+| OP-8 | Numeric limit | digits budget; default value | budget `digits = 1000` significant digits, overflow = budget exhaustion (never a value) | default validated |
+| OP-9 | Empty groups (§4.4) | grounded groups exist (`count = sum = 0`, no min/max) vs SQL-only groups | **both readings**, chosen syntactically by where group-by variables are bound | default validated |
+| OP-10 | Granularity of the soundness rule (§6) | (a) unit-level (predicate/SCC, table); (b) answer-level via provenance (an answer is sound if some derivation avoids exposed checks); (c) plus monotone-aggregate edges treated as positive | **(a)** in v1; (b) and (c) as later refinements | default validated |
+| OP-11 | What UNKNOWN returns | (a) nothing, plus blocking units; (b) a separately flagged "unverified preview" on explicit request | **(a)**, with (b) as an opt-in debug mode, never mixed with sound results | default validated |
+| OP-12 | Typing | soft typing (static rejection of certain errors, `@type` as constraints) / strict typing | **soft typing** | default validated |
+| OP-13 | Labelled nulls in F2 input | reject at load / accept as opaque constants | reject | **D9**: reject; labelled nulls are a pure reservation in the term model; RDF blank nodes as input: future lead after an impact study |
+| OP-14 | Constant-answer pruning analysis (E3-ex Run 2: the constant part is finite and computed, but not known to be) | v1 none / term-flow analysis proving that function terms cannot flow back into constant positions | **none in v1**; research item | default validated |
+| OP-15 | Goal-directed decidability classes (FDNC, finitary, finitely recursive) | static recognition in v1 / dynamic tabling completion only | **dynamic only**; FDNC-shape recogniser later | default validated (applies once backward chaining exists, D16) |
+| OP-16 | Scope of the D5 guard | strict edges = negation only / negation + aggregates / + lookup-induced negation | all three (conservative). Consequence: no stored rewriting for queries touching a lookup-declared function | **D15**: the guard stays strict (all three) |
+| OP-17 | Hybrid rewriting (§8.4) in v1 | implement / defer | defer to v1.1 | **D16**: v0/v1 pure chase only; then rewriting or backward chaining; then hybrid. §8.4 stays defined, not implemented in v1 |
+| OP-18 | Invalidation granularity | any rule change / cone fingerprint | **any rule or declaration change** in v1; cone fingerprint later | default validated (applies once stored rewriting exists, D16) |
+| OP-19 | Default budgets | values for `rounds`, `depth`, `facts`, `time` | deterministic defaults `depth = 16` and `rounds = 10⁴`, plus `time` as a safety net; tests set budgets explicitly | default validated |
+| OP-20 | General integrity constraints `! :- body` beyond FDs | include / FDs only | **include** (same machinery; FDs are sugar) | default validated |
+| OP-23 | Articulation of the D10 co-reference option with `@lookup` (resolution at derivation time, without equality), including functional terms sent back in data (D11) while a value is now recorded (§1.5) | lookup first, then co-reference / co-reference first / other | none yet | **OPEN** (raised by the validation) |
+
+OP-21 and OP-22 are numbers already used for points proposed by [report 12](12-invention-under-negation.md) §7-§8; they are not part of this report.
+
+**Points where the owner decisions interact non-trivially** (as discussed at validation):
+- **D2 + D5**: lookup-before-invent is *defined* by a translation into stratified negation. Under the strict guard (D15), every query touching a lookup-declared function is excluded from stored rewriting, even when, as in §10.3, the negation is harmless for constant answers (Prop. 5). A refinement excluding lookup-induced edges from the guard would need its own proof; it is not adopted.
+- **D2 + E3-ex**: the natural modelling `@lookup manager ← hasManager` is exactly the non-stratifiable case D2 asks to reject (§3.0). Hence a separate source predicate such as `recordedManager`; the `@db` sugar is postponed (D14).
+- **E1 + negation**: soundness is guaranteed only through rule N1. The consequence is that, in practice, programs with a non-certified recursive SCC below a negation return UNKNOWN under materialisation. With D16 (materialisation only in v1), goal-directed completion is not available to recover them in v1.
+- **D10 + D2 + D11**: see OP-23.

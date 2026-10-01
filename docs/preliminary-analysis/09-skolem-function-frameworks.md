@@ -1,5 +1,7 @@
 # 09: Named Skolem functions as the modelling primitive (theory survey)
 
+> **Note (2026-10-01).** The example `employee(X) -> hasManager(X, manager(X))` used in this report is not the owner's actual E3-ex rule, which is `employee(x), not isCompanyDirector(x) -> exists y managerOf(y, x)`. See [README Corrections](README.md#corrections). The example remains a valid illustration of named Skolem functions.
+
 Scope: the theoretical consequences of replacing existential variables by **explicit, named Skolem functions** shared across rules, for example
 
 ```

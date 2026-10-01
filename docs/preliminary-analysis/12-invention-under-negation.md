@@ -2,6 +2,8 @@
 
 **Status: study, input for owner validation.** It checks the business rule stated by the project owner against the F2 contract of [report 11](11-f2-framework-definition.md) and against four other approaches, and it turns the results into phase-2 test scenarios. Nothing here changes report 11. Proposed changes are listed in §8 as candidate open points.
 
+> **Note (2026-10-01).** This report was built on a misreading of the owner's rule: the negated predicate was read as `hasBoss` (i.e. lookup-before-invent). The owner's actual E3-ex rule is `employee(x), not isCompanyDirector(x) -> exists y managerOf(y, x)`. See [README Corrections](README.md#corrections). The variants studied here remain valid test scenarios. Report 11 was validated on 2026-10-01 (README D9-D16).
+
 The rule under study:
 
 ```

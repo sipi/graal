@@ -19,9 +19,10 @@ Evaluate whether to refurbish Graal (dependency upgrade, modernization, partial 
 | 07 | [State of the art: theory](07-sota-theory.md) | Theory survey (semantics, equivalence-preserving transformations, decidability classes) with a checklist of 20 specification decisions. |
 | 08 | [Kotlin vs Rust](08-kotlin-vs-rust.md) | Weighted analysis: Rust 4.10 vs Kotlin 3.35; recommends a Rust core, conditional on a spike. |
 | 09 | [Skolem-function frameworks](09-skolem-function-frameworks.md) | Theoretical frameworks with named Skolem functions: function-graph translation T(P), transfer of decidability classes, equality options (lookup-before-invent), Graal-as-oracle boundaries, frameworks F1/F2/F3. |
-| 11 | [F2 framework definition](11-f2-framework-definition.md) | **DRAFT — under owner review.** Formal definition of the v1 framework F2: syntax, lookup-before-invent translation, stratification, perfect-model semantics with exact decimals, reasoning tasks, soundness under non-termination and completeness statuses, termination portfolio, strategies (incl. hybrid rewriting, D5), relation to existential rules, worked examples, open points. |
+| 11 | [F2 framework definition](11-f2-framework-definition.md) | **VALIDATED by owner on 2026-10-01, except OP-3 (pending report 14)**; see D9-D16. Formal definition of the v1 framework F2: syntax, lookup-before-invent translation, stratification, perfect-model semantics with exact decimals, reasoning tasks, soundness under non-termination and completeness statuses, termination portfolio, strategies (incl. hybrid rewriting, D5), relation to existential rules, worked examples, open points. |
 | 12 | [Invention under negation](12-invention-under-negation.md) (see Corrections) | Value invention correlated with negation: behaviour across approaches, test scenarios. Covers `employee(x), not hasBoss(x) → ∃y managerOf(y,x)` and variants under F2, restricted/Skolem chase, stable models and well-founded semantics, checked with clingo, a chase simulator and Nemo. Also covers the restricted chase as an implicit self-negation, recommends rejecting self- and cross-defeating invention, and gives 14 test scenarios. |
 | 13 | [Apache Jena rule engine](13-jena-rule-engine.md) | Apache Jena rule engine: hybrid forward/backward reasoning, makeSkolem and noValue builtins, behaviour on the running examples. |
+| 14 | [Uniqueness and functionality](14-uniqueness-and-functionality.md) | Uniqueness and functionality: UNA vs co-reference, conflicting recorded values, inconsistency-tolerant semantics — in progress (input for OP-3). |
 
 ## Key findings
 
@@ -50,9 +51,10 @@ Evaluate whether to refurbish Graal (dependency upgrade, modernization, partial 
 - **E5** Labelled nulls must be a distinct term kind, consistent across all stores (first design decision).
 - **E6** Language: Kotlin or Rust, to be decided.
   - The weighted analysis ([report 08](08-kotlin-vs-rust.md)) favours Rust (assurance, aerospace/defense, integration) and Kotlin on velocity. Sensitivity check: with velocity at 30% and assurance at 15%, Rust 4.0 vs Kotlin 3.55.
-  - Decision via a reduced, time-boxed spike: 2 weeks in Kotlin + 3 weeks in Rust. Scope: data model, homomorphism with bi-connected components, GRD + SCC chase, and benchmarks (LUBM, 1,000 small KBs, compared with Nemo and Graal). MCP/Python/WASM integration is assessed on documentation only.
+  - Decision via a reduced, time-boxed spike: 2 weeks in Kotlin + 3 weeks in Rust. (Editorial note, 2026-10-01: [report 08](08-kotlin-vs-rust.md) §8 Stage 1 proposes 3 + 4 weeks; the 2 + 3 weeks stated here are authoritative.) Scope: data model, homomorphism with bi-connected components, GRD + SCC chase, and benchmarks (LUBM, 1,000 small KBs, compared with Nemo and Graal). MCP/Python/WASM integration is assessed on documentation only.
   - Go/no-go: Rust if it reaches feature parity with at most 1.6x the Kotlin hours, otherwise Kotlin. If both pass: Rust if defense prospects are real, Kotlin if the next 18 months are enterprise-only.
   - Avoid a hybrid Rust kernel + Kotlin outer layer: the boundary would cut through the homomorphism hot loop used by rewriting.
+  - Editorial note, 2026-10-01: [report 05](05-nemo-and-rust-option.md) recommends a Kotlin core and [report 08](08-kotlin-vs-rust.md) a Rust core conditional on the spike. Report 05's recommendation is historical; report 08 is the most recent analysis; the language choice remains open.
 - **E8** Rule-set optimisation pass:
   - the original rule set is always kept;
   - the rewritten set is logically equivalent (query-answer equivalence may come later, low priority);
@@ -68,7 +70,8 @@ Evaluate whether to refurbish Graal (dependency upgrade, modernization, partial 
 - **E10** Reasoning strategies, selected by the analyser: (a) forward chaining (chase / materialisation); (b) backward chaining, performed dynamically at query time; (c) query rewriting, which shares foundations with backward chaining but can be executed a priori on queries known in advance (e.g. pre-registered queries), saving considerable run time when the rewriting is bounded; (d) combinations of these. Pre-computed rewritings must be invalidated when the rule set changes. GBTS-specific algorithms are out of scope.
 - **E11** Development model: 100% of the code is written by AI agents; theoretical choices and architecture are validated by the project owner; the conformance/quality test suite and benchmarks are built independently of (and before) the implementation.
 - **E12** Rule-set simplification includes premise simplification using other rules (e.g. {a→b, a∧b→c} ≡ {a→b, a→c}); termination is guaranteed by a strictly decreasing measure (e.g. total body size).
-- **Scope:** existential rules first, then stratified negation (an existing external module to integrate), then aggregation. Uncertainty and time are out of scope for now.
+- **E13** Working principle (= D17): first define the target (the "cap"), then a plan that reaches it in small, iterative, incremental steps, each of which is verifiable and validated.
+- **Scope** *(superseded by D1 and D6: v0 is plain positive Datalog, then F2 with named functions, stratified negation and aggregation; kept for history)*: existential rules first, then stratified negation (an existing external module to integrate), then aggregation. Uncertainty and time are out of scope for now.
 - **Target domains:** enterprise / complex business-domain modelling (small-to-medium KBs), later aerospace/defense (potentially large KBs).
 
 ## Clarifications
@@ -80,11 +83,11 @@ Evaluate whether to refurbish Graal (dependency upgrade, modernization, partial 
 ## Key theory points
 
 - Membership in FES / FUS / BTS is undecidable, so use a portfolio of sufficient tests per GRD SCC.
-- Three completeness statuses: static proof, dynamic (fixpoint reached), not guaranteed.
+- Four completeness statuses (D12): COMPLETE-STATIC (static proof), COMPLETE-DYNAMIC (fixpoint reached), NOT-GUARANTEED, UNKNOWN (exposed result, see [report 11](11-f2-framework-definition.md) §6.3). The earlier list of three statuses is superseded.
 - Logical equivalence of rule sets reduces to entailment, which is decidable within decidable classes.
 - Some transformations are true logical equivalences; others give only conservative extensions (see [report 07](07-sota-theory.md)).
 - Recompute the GRD after every transformation.
-- Default semantics candidate: negation and aggregation only on null-free positions (independent of the chase variant); Skolem perfect-model semantics as opt-in.
+- *(Superseded by D1: F2, i.e. Skolem perfect-model semantics, is the v1 framework; kept for history.)* Default semantics candidate: negation and aggregation only on null-free positions (independent of the chase variant); Skolem perfect-model semantics as opt-in.
 - The Skolem chase serves as the materialisation backend, enabling FBF / B-F incremental maintenance.
 - Open research gaps: incremental restricted/core chase; breaking GRD SCCs under logical equivalence.
 
@@ -96,7 +99,7 @@ Graal was written under an employment contract, so copyright is likely held by t
 
 - **E1-ex** "If no specific condition applies then general conditions apply": stratified negation, closed-world.
 - **E2-ex** "Basket > 200€ ⇒ free delivery": sum aggregate, comparison, exact decimals.
-- **E3-ex** "Every employee has a line manager": existential vs named Skolem function. With "every manager is an employee", the Skolem chase does not terminate; this is the first test case for the analyser.
+- **E3-ex** "Every employee has a line manager" (exact rule: see Corrections): existential vs named Skolem function. With "every manager is an employee", the Skolem chase does not terminate; this is the first test case for the analyser.
 
 ## Decisions
 
@@ -111,14 +114,29 @@ Recorded 2026-09-30:
 Recorded 2026-10-01:
 
 - **D6** First engine scope (v0): plain positive Datalog — no existential variables, no Skolem functions, no negation (and therefore no aggregation). Rationale: avoid blocking on the open theoretical questions of value invention. v0 is not throwaway: the analyser will detect when a formalisation falls in this fragment and dispatch it to a specialised, faster algorithm. The architecture must still anticipate F2 (three term kinds, strata) so that v0 extends rather than gets rewritten.
-- **D7** Rounding is chosen by the human modeller; three modes must be available: `floor`, `round` (half-up) and `bank_round` (half-even). This supersedes the single default proposed in [report 11](11-f2-framework-definition.md) open point 7.
-- **D8** Late materialisation of Skolem terms (direction for F2, not v0): keep Skolem terms symbolic, with their creation context, during reasoning, and turn them into output identifiers only when results are returned; this keeps the Skolem chase order-independent. Caveat recorded by the owner: it requires accepting that two distinct Skolem terms (e.g. `manager(Tom)`, `manager(Anna)`) may denote the same individual, which is not theoretically neutral (unique-name assumption vs equality; impact on counting and aggregates).
+- **D7** Rounding is chosen by the human modeller; three modes must be available: `floor`, `round` (half-up) and `bank_round` (half-even). This supersedes the single default proposed in [report 11](11-f2-framework-definition.md) open point 7. *(Amended by D13: five modes, no default.)*
+- **D8** Late materialisation of Skolem terms (direction for F2, not v0): keep Skolem terms symbolic, with their creation context, during reasoning, and turn them into output identifiers only when results are returned; this keeps the Skolem chase order-independent. Caveat recorded by the owner: it requires accepting that two distinct Skolem terms (e.g. `manager(Tom)`, `manager(Anna)`) may denote the same individual, which is not theoretically neutral (unique-name assumption vs equality; impact on counting and aggregates). *(Amended by D10: in v1 distinct Skolem terms denote distinct individuals; this caveat now describes the co-reference option, anticipated in the architecture and activatable later.)*
+
+Recorded 2026-10-01 (owner validation of [report 11](11-f2-framework-definition.md)):
+
+- **D9** Labelled nulls in F2: a pure reservation in the term model; an input containing a labelled null is rejected. Accepting RDF blank nodes as input is a future lead, to be adopted only after an impact study. (Report 11 OP-13.)
+- **D10** Identity of Skolem terms: in v1, distinct Skolem terms denote distinct individuals (`manager(tom) ≠ manager(anna)`). Allowing distinct terms to co-refer is logically legitimate but complicates algorithms: it becomes an OPTION, anticipated in the architecture (e.g. term ids with an indirection to a class representative) and activatable later. Resolves the tension between D8 and report 11 §1.3/§4.1; D8's caveat now describes this option.
+- **D11** Functional terms may appear in input data. The output encoding of Skolem terms (e.g. a `skolem:` prefix with the function name, normalised argument values and unambiguous delimiters; exact syntax to be specified) is parsed back into structured terms. This guarantees the round-trip for AI agents that store answers and send them back. Termination analysis must account for functional terms present in the data. (Supersedes the default of report 11 OP-4.)
+- **D12** Four completeness statuses: COMPLETE-STATIC, COMPLETE-DYNAMIC, NOT-GUARANTEED, UNKNOWN ([report 11](11-f2-framework-definition.md) §6.3).
+- **D13** Rounding: five modes, `floor`, `ceil`, `truncate`, `round` (half-up) and `bank_round` (half-even). The modeller must always choose the mode explicitly; there is no default. Amends D7; supersedes the defaults of report 11 OP-6/OP-7 where they conflict.
+- **D14** Lookup source: any predicate (base or derived), provided the whole rule set remains stratifiable (checked; a rejection names the cycle). The `p@db` sugar is postponed: validate without it first. (Report 11 OP-2.)
+- **D15** The guard on pre-computed rewriting stays strict: negation, aggregates and lookup-induced edges all count (report 11 OP-16).
+- **D16** Incremental strategy (report 11 OP-17 and E10): v0/v1 = pure chase only (no rewriting, no backward chaining); then add rewriting or backward chaining; then hybrid. The hybrid per-stratum rewriting (D5) remains defined in report 11 but is not implemented in v1.
+- **D17** Working principle (also requirement E13): first define the target (the "cap"), then a plan that reaches it in small, iterative, incremental steps, each verifiable and validated.
+- **Not decided: report 11 OP-3** (several recorded values for one argument). It raises the uniqueness problem; a dedicated study ([report 14](14-uniqueness-and-functionality.md)) is in progress. The default "use all values and report a violation", with an optional strict mode, is a provisional proposal only.
+- **Terminology.** "Labelled null" (the standard term in databases and the chase literature) names the objects produced in facts; "existential variable" is used only for rule syntax; "existential witness" is only an explanatory gloss.
 
 ## Corrections
 
 Recorded 2026-10-01:
 
 - The running example E3-ex is the rule `employee(x) AND NOT isCompanyDirector(x) -> exists y managerOf(y, x)`: negation on a data predicate, intended to stop the manager chain at the company director, who is the only employee without a boss.
+- Reports [09](09-skolem-function-frameworks.md) and [11](11-f2-framework-definition.md) illustrate E3-ex with `employee(X) -> hasManager(X, manager(X))` (no negation; in report 11 with lookup-before-invent on `recordedManager`). These remain valid illustrations of named functions and of D2, but are not the owner's rule.
 - [Report 12](12-invention-under-negation.md) was built on a misreading (the negated predicate was interpreted as `hasBoss`, i.e. lookup-before-invent). Its variants remain valid test scenarios but do not model the owner's intended rule.
 - With pure Skolem terms the chain does not stop at the director: an invented `manager(...)` term is never equal to the director constant, unless equality between invented terms and constants is supported. This links to the caveat of D8.
 
@@ -145,9 +163,11 @@ Phase order decided by the project owner:
 1. **Theoretical framework.** Deliverables:
    - 09 frameworks (done, validated: F2 chosen, see D1);
    - 10 rule transformations and proof sheets (postponed, see D4);
-   - 11 framework definition document: syntax, semantics, reasoning tasks, completeness statuses (drafted, awaiting owner validation: [report 11](11-f2-framework-definition.md), open points in §11).
+   - 11 framework definition document: syntax, semantics, reasoning tasks, completeness statuses (validated on 2026-10-01 except OP-3, see D9-D16: [report 11](11-f2-framework-definition.md), open points in §11);
+   - 14 uniqueness and functionality (in progress: [report 14](14-uniqueness-and-functionality.md), input for OP-3).
 
    v0 (D6): tests, specification/architecture and prototype for the positive Datalog fragment first; F2 features follow.
+   Strategies follow D16: pure chase first (v0/v1), then rewriting or backward chaining, then hybrid. Every phase follows D17/E13: define the target first, then reach it in small, verifiable, validated steps.
 2. **Test scenarios and quality benchmark** (correct and complete results), built independently of the implementation. Oracles: Graal on the fragment where it is valid (see [report 09](09-skolem-function-frameworks.md) §1.4), clingo/DLV for negation/aggregation over invented terms.
 3. **Software specifications and architecture.**
 4. **Prototype** (Kotlin vs Rust decision). With agent-written code the criterion becomes: passes the conformance suite and the architecture remains reviewable by the owner; Rust's compiler-enforced safety is an extra argument.
