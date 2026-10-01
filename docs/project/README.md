@@ -11,7 +11,7 @@ Every agent working on this project starts with this page. It gives the reading 
 | 1 | this file | orientation, rules, hierarchy |
 | 2 | [vision and scope](vision-and-scope.md) | what we build, for whom, what is in and out at each phase |
 | 3 | [requirements](requirements.md) | E1-E13 explained |
-| 4 | [decisions](decisions.md) | D1-D19 with rationale and consequences |
+| 4 | [decisions](decisions.md) | D1-D20 with rationale and consequences |
 | 5 | [open questions](open-questions.md) | what is not decided (Q1, OP-3, OP-23, language, ...) |
 | 6 | [roadmap](roadmap.md) | phases, v0 / F2 (v1) / later |
 | 7 | [how agents work here](how-agents-work-here.md) | development model, rules of conduct, commits, where things live |
@@ -37,7 +37,7 @@ Then, as needed: [running examples](running-examples.md), [architecture principl
 
 ## Source-of-truth hierarchy (project)
 
-1. **README decisions and requirements** ([`../preliminary-analysis/README.md`](../preliminary-analysis/README.md)): D1-D19, E1-E13, Corrections, open questions Q*. **Authoritative.**
+1. **README decisions and requirements** ([`../preliminary-analysis/README.md`](../preliminary-analysis/README.md)): D1-D20, E1-E13, Corrections, open questions Q*. **Authoritative.**
 2. **F2 framework definition**, [report 11](../preliminary-analysis/11-f2-framework-definition.md). It was **validated by the owner on 2026-10-01, except OP-3**, which waits for [report 14](../preliminary-analysis/14-uniqueness-and-functionality.md). OP-23 was raised by the validation and is open. It is the reference contract for conformance tests and the implementation.
 3. **Other reports** in [`../preliminary-analysis/`](../preliminary-analysis/README.md) (01-09, 12, 13; 14 in progress).
 4. **Project pages** (this folder): they summarise and link; they never override a decision.

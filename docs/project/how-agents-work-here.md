@@ -27,6 +27,8 @@ First define the target (the "cap"): what the step must deliver and how it will 
 7. **Stay in your lane.** Touch only the files your task names. Other agents may work concurrently on other folders.
 8. **Explanations cite original rules** (E8): never expose internal rewritten rules to users without the mapping back.
 9. **Use the domain reference, respect the dependency rule.** For definitions, notation and results, use [`docs/domain/`](../domain/main.md) instead of re-deriving them. Project documents link to it; it never links back or mentions the project. To enrich or challenge a domain page, follow its [contribution process](../domain/conventions.md#8-contribution-and-challenge-process).
+10. **Writing domain pages: work in isolation.** An agent writing or rewriting pages of `docs/domain/` does **not** read `docs/project/` or `docs/preliminary-analysis/`. It works only from the primary literature and from `docs/domain/` itself (notation, conventions, glossary), with a brief that lists pages and primary references and contains no project content. This keeps project vocabulary, priorities and decisions out of the domain reference. See the [domain stage-2 plan](domain-stage2-plan.md#writing-and-review-process).
+11. **Every written batch is reviewed adversarially before it is final.** A separate agent reviews it (findings graded blocker / major / minor / nit, with suggested fixes); the review is saved under [`reviews/`](reviews/) and blockers and majors are fixed. After all batches: a cross-page consistency review, a revision of the domain `main.md`, and only then the owner's expert review. The owner reviews pages that agents have already reviewed and corrected.
 
 ## Language
 
@@ -57,6 +59,7 @@ Claude-Session: <session URL>
 | `docs/preliminary-analysis/README.md` | requirements E*, decisions D*, corrections, Q* (authoritative) | owner, or agents recording an explicit owner decision |
 | `docs/preliminary-analysis/NN-*.md` | analysis reports 01-14 (11 is the F2 framework definition, validated except OP-3; 14 in progress) | report authors; fixes need care |
 | `docs/project/` | project documentation (start at [README](README.md)) | project agents, following the [project page conventions](README.md#conventions-for-project-pages) |
+| `docs/project/reviews/` | saved adversarial and consistency reviews, with what was addressed and what is open | reviewer agents; status updated by the agent applying the fixes |
 | `docs/domain/` | project-agnostic domain reference (encyclopedia) | any agent, following its [conventions](../domain/conventions.md); never mentions the project |
 | `graal-*/`, `rdf4j-common/`, `pom.xml` | legacy Graal code base (Java, CeCILL 2.1), kept as reference and oracle | do not modify for the new engine |
 | `docs/dev/` | legacy Graal release process | legacy |

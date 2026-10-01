@@ -1,6 +1,6 @@
 # Value-invention strategies
 
-Rule languages create new individuals in different ways: labelled nulls from existential variables, Skolem terms, built-ins that mint identifiers, and constructor predicates that create or retrieve an entity per key. A frequent practical need is to reuse a recorded value when one exists and invent one otherwise ('lookup before invent'). This page compares the mechanisms, their semantics and the patterns systems offer.
+Rule languages create new individuals in different ways: labelled nulls from existential variables (in the chase), rule-local Skolem terms, shared function symbols, built-ins that mint identifiers, constructor predicates that create or retrieve an entity per key, and arithmetic. Some mechanisms invent a value only when no witness already exists (the restricted chase, or invention guarded by default negation). This page compares the mechanisms, their semantics and the patterns systems offer.
 
 ## TODO (coverage)
 
@@ -9,7 +9,7 @@ Stub. Fill the [page template](../conventions.md#2-page-template), using the sym
 - [ ] Catalogue: existential variables + chase variant; rule-local Skolem terms; shared function symbols; identifier-minting built-ins; constructor predicates.
 - [ ] System mechanisms: LogicBlox constructor predicates; Jena `makeSkolem`, `makeInstance`, `makeTemp`; RDFox `SKOLEM`; Vadalog Skolem functions; ASP function terms; SQL sequences and UUIDs as a contrast.
 - [ ] Determinism and order independence: when the same input yields the same invented identifiers.
-- [ ] Lookup-before-invent patterns: restricted-chase behaviour (invent only if no witness exists); explicit encodings with default negation ('invent unless recorded'); their stratification constraints (the lookup source must not depend on the invented value).
+- [ ] Conditional invention: restricted-chase behaviour (invent only if no witness exists); explicit encodings with default negation; their stratification constraints (the condition must not depend on the invented value).
 - [ ] Invention under negation: self-defeating and cross-defeating invention; order dependence.
 - [ ] Functionality and keys: one value per key as a constraint vs as an equality rule.
 - [ ] Examples: every employee has a manager, with and without recorded managers.
@@ -18,8 +18,8 @@ Stub. Fill the [page template](../conventions.md#2-page-template), using the sym
 
 - [Skolem functions and terms](skolem-functions-and-terms.md): function terms.
 - [labelled nulls](labelled-nulls.md): anonymous invention.
-- [chase variants](../algorithms/chase-variants.md): restricted chase as implicit lookup.
-- [stratified negation](stratified-negation.md): encoding lookup with negation.
+- [chase variants](../algorithms/chase-variants.md): restricted chase as conditional invention.
+- [stratified negation](stratified-negation.md): encoding conditional invention with negation.
 - [equality and UNA](equality-and-una.md): keys and co-reference.
 - [systems: Jena rules](../systems/jena-rules.md): makeSkolem, makeInstance.
 

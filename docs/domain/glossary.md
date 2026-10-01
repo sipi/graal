@@ -20,25 +20,26 @@ Every term used in this reference, with a one-line definition, the page that exp
 | Blank node | RDF term denoting an unnamed resource; the RDF counterpart of a labelled null. | [RDF and SPARQL](adjacent/rdf-and-sparql.md) | nœud anonyme (nœud blanc) |
 | Blocking | Stopping the expansion of an individual whose type repeats that of an earlier one, to obtain a finite representation. | [blocking and finite representations](algorithms/blocking-and-finite-representations.md) | blocage |
 | Body | The premise of a rule. | [foundations](concepts/foundations.md) | corps (prémisse) |
+| Brave / cautious reasoning | An atom is a brave (credulous) consequence if true in some stable model, a cautious (skeptical) consequence if true in all. | [logic programming and ASP](concepts/logic-programming-and-asp.md) | raisonnement crédule / sceptique |
 | BTS | Bounded treewidth set: rule sets having, for every database, a universal model of bounded treewidth. | [decidability classes](concepts/decidability-classes.md) | ensemble à largeur arborescente bornée |
 | Budget | A limit on rounds, depth, facts, time or memory after which a computation is stopped. | [soundness and completeness of partial results](concepts/soundness-and-completeness-of-partial-results.md) | budget (limite de ressources) |
 | Certain answer | A tuple of constants that is an answer in every model of the knowledge base. | [foundations](concepts/foundations.md) | réponse certaine |
 | Certificate | Checkable evidence of a property, e.g. a terminating MFA run proving chase termination. | [rule-set analysis tools](algorithms/rule-set-analysis-tools.md) | certificat |
 | Chase | Forward chaining with value invention; produces a universal model (possibly infinite). | [chase variants](algorithms/chase-variants.md) | chase (saturation) |
-| Classical (strong) negation (`¬`) | Negation of first-order logic: `¬p(a)` holds only if it is entailed. | [logic programming and ASP](concepts/logic-programming-and-asp.md) | négation classique (forte) |
-| Closed-world assumption (CWA) | What is not derivable is false. | [foundations](concepts/foundations.md) | hypothèse du monde clos |
+| Classical (strong) negation (`¬`) | Negation of first-order logic: `¬p(a)` is true in a model where `p(a)` is false; under the open-world reading it is a consequence only if entailed, which is stronger than `not p(a)`. | [logic programming and ASP](concepts/logic-programming-and-asp.md) | négation classique (forte) |
+| Closed-world assumption (CWA) | What is not derivable is false (Reiter 1978); related to, but distinct from, default negation and Herbrand semantics. | [foundations](concepts/foundations.md) | hypothèse du monde clos |
 | Combined complexity | Complexity measured in the size of the data, the rules and the query together. | [decidability classes](concepts/decidability-classes.md) | complexité combinée |
 | Completeness | Every correct answer is returned. | [soundness and completeness of partial results](concepts/soundness-and-completeness-of-partial-results.md) | complétude |
 | Conjunctive query (CQ) | Existentially quantified conjunction of atoms with answer variables. | [conjunctive queries](concepts/conjunctive-queries-and-ucq.md) | requête conjonctive |
 | Conservative extension | A theory over a larger signature with the same consequences over the original signature. | [equivalence notions](concepts/equivalence-notions.md) | extension conservative |
 | Constant | A term denoting a fixed individual or value (symbol or typed literal). | [foundations](concepts/foundations.md) | constante |
 | Constructor (predicate) | A declared function-like predicate that creates or retrieves an entity for each key (LogicBlox style). | [value-invention strategies](concepts/value-invention-strategies.md) | constructeur |
-| Core | An instance with no proper endomorphism; the smallest instance homomorphically equivalent to a given one. | [foundations](concepts/foundations.md) | cœur |
+| Core | An instance with no homomorphism into a proper subset of itself (no proper retraction); the smallest instance homomorphically equivalent to a given one, unique up to isomorphism. | [foundations](concepts/foundations.md) | cœur |
 | Core chase | Chase variant computing cores; terminates iff a finite universal model exists. | [chase variants](algorithms/chase-variants.md) | chase cœur |
 | Critical instance | Instance with one constant and all atoms over it; termination on it implies all-instance termination for (semi-)oblivious chases. | [chase termination](concepts/chase-termination.md) | instance critique |
 | Data complexity | Complexity measured in the size of the data, rules and query fixed. | [decidability classes](concepts/decidability-classes.md) | complexité en données |
 | Datalog | Function-free Horn rules whose head variables occur in the body. | [Datalog](concepts/datalog.md) | Datalog |
-| Datalog± | Family of existential-rule languages (linear, guarded, sticky, warded, ...). | [existential rules](concepts/existential-rules.md) | Datalog± |
+| Datalog± | Family of decidable fragments of existential rules (linear, guarded, sticky, warded, ...), usually with EGDs and negative constraints; not a synonym of existential rules. | [existential rules](concepts/existential-rules.md) | Datalog± |
 | Datalog-first chase | Restricted chase applying Datalog rules to fixpoint before any existential rule. | [chase variants](algorithms/chase-variants.md) | chase Datalog d'abord |
 | Decidability | Existence of an algorithm that always terminates with the correct yes/no answer. | [decidability classes](concepts/decidability-classes.md) | décidabilité |
 | Decimal (exact) | Finite decimal fraction `m·10^-s` with exact arithmetic (no binary floats). | [exact decimals and rounding](concepts/exact-decimals-and-rounding.md) | décimal exact |
@@ -55,7 +56,9 @@ Every term used in this reference, with a one-line definition, the page that exp
 | Fact | A ground atom. | [foundations](concepts/foundations.md) | fait |
 | Fairness | Every applicable rule application is eventually performed (or made inactive). | [chase termination](concepts/chase-termination.md) | équité |
 | FBF, B/F | Forward/backward/forward and backward/forward incremental maintenance algorithms. | [incremental maintenance](algorithms/incremental-maintenance.md) | FBF, B/F |
-| FDNC | Decidable class of logic programs with unary functions and forest-shaped rules, with possibly infinite models. | [decidability classes](concepts/decidability-classes.md) | FDNC |
+| Finite controllability | Property of a class of rule sets: entailment over finite models coincides with unrestricted entailment. | [decidability classes](concepts/decidability-classes.md) | contrôlabilité finie |
+| FDNC | Decidable class of logic programs with unary functions and forest-shaped rules, with possibly infinite models. | [decidability classes](concepts/decidability-classes.md) | Finite controllability | Property of a class of rule sets: entailment over finite models coincides with unrestricted entailment. | [decidability classes](concepts/decidability-classes.md) | contrôlabilité finie |
+| FDNC |
 | FES | Finite expansion set: a finite universal model exists for every database. | [decidability classes](concepts/decidability-classes.md) | ensemble à expansion finie |
 | Finitely ground program | Logic program whose relevant grounding is finite, so that grounders terminate. | [logic programming and ASP](concepts/logic-programming-and-asp.md) | programme finiment instanciable |
 | Forward chaining | Applying rules to data until fixpoint (materialisation). | [semi-naive evaluation](algorithms/semi-naive-evaluation.md) | chaînage avant |
@@ -80,19 +83,20 @@ Every term used in this reference, with a one-line definition, the page that exp
 | Knowledge base (KB) | Facts plus rules, `K = (D, Σ)`. | [foundations](concepts/foundations.md) | base de connaissances |
 | Labelled null | Term occurring in instances that stands for an unknown individual, typically created by the chase. | [labelled nulls](concepts/labelled-nulls.md) | null étiqueté (valeur nulle étiquetée) |
 | Least Herbrand model | Smallest model of a positive program; least fixpoint of the immediate-consequence operator. | [Datalog](concepts/datalog.md) | plus petit modèle de Herbrand |
+| Linear rule | Existential rule whose body is a single atom; linear rule sets are FUS. | [decidability classes](concepts/decidability-classes.md) | règle linéaire |
 | Literal | An atom, a negated atom, a built-in or an aggregate in a rule body. | [stratified negation](concepts/stratified-negation.md) | littéral |
-| Lookup-before-invent | Value-invention pattern: reuse a recorded value for a key, invent a new one only if none is recorded. | [value-invention strategies](concepts/value-invention-strategies.md) | consulter avant d'inventer |
 | Magic sets | Program transformation making bottom-up evaluation goal-directed. | [backward chaining and tabling](algorithms/backward-chaining-and-tabling.md) | ensembles magiques |
 | Materialisation | Computing and storing all derivable facts. | [semi-naive evaluation](algorithms/semi-naive-evaluation.md) | matérialisation (saturation) |
 | MFA / MSA | Model-faithful / model-summarising acyclicity: termination tests by a Skolem chase on the critical instance. | [decidability classes](concepts/decidability-classes.md) | acyclicité fidèle au modèle / résumant le modèle |
 | Model | Interpretation satisfying all formulas of the knowledge base. | [foundations](concepts/foundations.md) | modèle |
 | OBDA | Ontology-based data access: querying data sources through an ontology and mappings. | [ontology-based data access](adjacent/ontology-based-data-access.md) | accès aux données fondé sur une ontologie |
-| Oblivious / semi-oblivious chase | Chase firing every trigger / once per frontier mapping (the latter equals the Skolem chase). | [chase variants](algorithms/chase-variants.md) | chase oblivious / semi-oblivious |
+| Oblivious / semi-oblivious chase | Chase firing every trigger / once per frontier mapping (the latter corresponds to the Skolem chase with frontier-based Skolemisation). | [chase variants](algorithms/chase-variants.md) | chase oblivious / semi-oblivious |
 | Open-world assumption (OWA) | What is not entailed is unknown. | [foundations](concepts/foundations.md) | hypothèse du monde ouvert |
 | Oracle (test) | Reference system whose answers serve as expected results on a fragment. | [benchmarks and test oracles](evaluation/benchmarks-and-test-oracles.md) | oracle (de test) |
 | OWL 2 | W3C ontology language based on description logics, with profiles EL, QL, RL. | [description logics and OWL](adjacent/description-logics-and-owl.md) | OWL 2 |
 | Perfect model | Stratum-by-stratum least-fixpoint model of a stratified program. | [perfect-model semantics](concepts/perfect-model-semantics.md) | modèle parfait |
 | Piece-unifier | Unifier between a query piece and a rule head respecting existential variables. | [piece-unifiers](algorithms/piece-unifiers.md) | unificateur par morceaux |
+| Production rules | Condition-action rules with an operational semantics (OPS5, CLIPS, Drools), matched with RETE-style algorithms; out of scope of this reference. | [main](main.md#scope) | règles de production |
 | Predicate dependency graph | Graph over predicates with positive and negative (or aggregate) edges, used for stratification. | [stratified negation](concepts/stratified-negation.md) | graphe de dépendance des prédicats |
 | Proof tree | Tree of rule applications deriving a fact from input facts. | [provenance](concepts/provenance.md) | arbre de preuve |
 | Provenance | Record of how facts were derived (which facts and rules contributed). | [provenance](concepts/provenance.md) | provenance (traçabilité) |
@@ -105,9 +109,10 @@ Every term used in this reference, with a one-line definition, the page that exp
 | Safety | Every variable of the head, of negated atoms and of built-ins is bound by a positive body atom. | [stratified negation](concepts/stratified-negation.md) | sûreté (règle saine) |
 | SCC | Strongly connected component of a dependency graph. | [GRD](algorithms/graph-of-rule-dependencies-grd.md) | composante fortement connexe |
 | Semi-naive evaluation | Fixpoint computation joining only new facts with old ones. | [semi-naive evaluation](algorithms/semi-naive-evaluation.md) | évaluation semi-naïve |
-| Skolem chase | Chase where existential variables are replaced by Skolem terms; equivalent to the semi-oblivious chase. | [chase variants](algorithms/chase-variants.md) | chase de Skolem |
-| Skolem function | Function symbol replacing an existential variable. | [Skolem functions and terms](concepts/skolem-functions-and-terms.md) | fonction de Skolem |
+| Skolem chase | Chase where existential variables are replaced by Skolem terms; with Skolem terms over the frontier it corresponds to the semi-oblivious chase, with Skolem terms over all body variables to the oblivious chase [U]. | [chase variants](algorithms/chase-variants.md) | chase de Skolem |
+| Skolem function | Fresh function symbol introduced by Skolemisation for one existential variable of one rule (`f^ρ_z`); not to be confused with a shared function symbol. | [Skolem functions and terms](concepts/skolem-functions-and-terms.md) | fonction de Skolem |
 | Skolemisation | Replacing existential variables by Skolem terms. | [Skolemisation and function-graph translations](concepts/skolemisation-and-function-graph-translations.md) | skolémisation |
+| Shared function symbol | Function symbol written by the user and usable in several rules, in data and in queries; strictly more expressive than Skolemisation. | [Skolem functions and terms](concepts/skolem-functions-and-terms.md) | symbole de fonction partagé |
 | SLD / SLG resolution | Prolog's resolution strategy / its tabled extension with completion. | [backward chaining and tabling](algorithms/backward-chaining-and-tabling.md) | résolution SLD / SLG |
 | Soundness | Every returned answer is correct. | [soundness and completeness of partial results](concepts/soundness-and-completeness-of-partial-results.md) | correction (adéquation) |
 | SPARQL | W3C query language for RDF. | [RDF and SPARQL](adjacent/rdf-and-sparql.md) | SPARQL |

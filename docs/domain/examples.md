@@ -7,7 +7,7 @@ Small pedagogical examples reused across the reference, so that pages illustrate
 | [Chain of command](#ex-chain) | positive Datalog, recursion | least model, semi-naive evaluation, SCCs, CQ answering |
 | [Default conditions](#ex-default) | stratified negation | closed world, strata, perfect model |
 | [Basket threshold](#ex-basket) | aggregation, exact decimals | grouping, empty groups, exact comparison, rounding |
-| [Every employee has a manager](#ex-manager) | value invention | existential variables vs Skolem terms, identity of invented individuals |
+| [Every employee has a manager](#ex-manager) | value invention | existential variables, Skolemisation, shared function symbols, identity of invented individuals |
 | [Managers are employees](#ex-manager-chain) | value invention + recursion | non-terminating chase, infinite models, why negation on data does not stop invention |
 | [Teaching ontology](#ex-teaching) | existential rules, DL-style | certain answers, query rewriting, universal models |
 
@@ -96,12 +96,13 @@ Two standard readings:
 % (a) existential rule (DLGP style; Y existential), default negation on a data predicate
 managerOf(Y, X) :- employee(X), not isCompanyDirector(X).      % Y existential
 
-% (b) Skolem function: the manager of X is the term manager(X)
+% (b) shared function symbol: the manager of X is the term manager(X)
 managerOf(manager(X), X) :- employee(X), not isCompanyDirector(X).
 ```
 
 - **(a)** The chase creates labelled nulls: `managerOf(n1, tom)`, `managerOf(n2, anna)`. Certain answers to `q(y) = managerOf(y, tom)` are empty: the manager exists but is unknown. The Boolean query `∃y managerOf(y, tom)` is entailed.
-- **(b)** The model contains `managerOf(manager(tom), tom)` and `managerOf(manager(anna), anna)`. Under the Herbrand reading, `manager(tom)` is an answer to `q(y)`, and it is a different individual from `manager(anna)` and from every constant.
+- **Skolemising (a)** replaces `Y` by `f(X)`, with `f` a fresh symbol local to this rule (`f^ρ_y` in [notation §7](notation.md#7-semantics-entailment-chase)). Certain answers over constants are the same as for (a).
+- **(b)** uses a function symbol `manager` chosen by the user. It is not the Skolemisation of (a): the same symbol may occur in other rules, in data and in queries, which identifies invented individuals across rules. The model contains `managerOf(manager(tom), tom)` and `managerOf(manager(anna), anna)`. Under the Herbrand reading, `manager(tom)` is an answer to `q(y)` in that model, and it is a different individual from `manager(anna)` and from every constant. It is not a certain answer in the first-order sense, since certain answers contain constants only ([notation §6](notation.md#6-queries-and-answers)).
 - **Data already recording a manager**: with `managerOf(dir, anna)` given, the restricted chase does not invent a manager for `anna` in reading (a) (the head is already satisfied). Reading (b) still produces `manager(anna)`. Avoiding this needs an explicit pattern, see [value-invention strategies](concepts/value-invention-strategies.md).
 
 <a id="ex-manager-chain"></a>
@@ -117,7 +118,7 @@ employee(Y) :- managerOf(Y, X).
 - Reading (a): every chase variant also diverges, because the invented nulls are never `dir`. The restricted chase does not help: no existing individual satisfies the head for the new employee.
 - **Intended meaning versus formal meaning**: a modeller usually means "the chain stops at the director". Expressing it requires identifying some invented individual with the constant `dir`, i.e. equality reasoning ([equality and UNA](concepts/equality-and-una.md)), or a different modelling.
 - **Static analysis**: the rule set is not weakly acyclic and not MFA (the MFA check produces the cyclic term `manager(manager(x))`). See [chase termination](concepts/chase-termination.md), [decidability classes](concepts/decidability-classes.md), [blocking and finite representations](algorithms/blocking-and-finite-representations.md).
-- **Partial results**: a computation stopped after `k` levels is sound for positive queries but may be incomplete. A query that negates `employee` or `managerOf` may get wrong answers. See [soundness and completeness of partial results](concepts/soundness-and-completeness-of-partial-results.md).
+- **Partial results**: a computation stopped after `k` levels returns sound answers (made of constants) to unions of conjunctive queries, but may be incomplete. A query that negates `employee` or `managerOf` may get wrong answers. See [soundness and completeness of partial results](concepts/soundness-and-completeness-of-partial-results.md).
 
 <a id="ex-teaching"></a>
 ## Teaching ontology (existential rules, rewriting)

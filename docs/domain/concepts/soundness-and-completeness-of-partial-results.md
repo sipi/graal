@@ -1,6 +1,6 @@
 # Soundness and completeness of partial results
 
-What does a reasoner guarantee when it stops before reaching a fixpoint (budget, timeout, non-terminating chase), or when it cannot prove that it reached one? For monotone (positive) rules, every derived fact is sound and only completeness is at risk. With negation or aggregation, a lower layer that is incomplete can make upper-layer results unsound. This page collects the notions used to state such guarantees.
+What does a reasoner guarantee when it stops before reaching a fixpoint (budget, timeout, non-terminating chase), or when it cannot prove that it reached one? For monotone (positive) rules, every derived fact is entailed, so answers made of constants to unions of conjunctive queries are sound and only completeness is at risk; an early stop cannot certify consistency. With default negation or non-monotone aggregation, a lower layer that is incomplete can make upper-layer results unsound. This page collects the notions used to state such guarantees.
 
 ## TODO (coverage)
 
@@ -9,7 +9,8 @@ Stub. Fill the [page template](../conventions.md#2-page-template), using the sym
 - [ ] Soundness and completeness of answers w.r.t. a semantics; certain answers 'in the limit' (the chase is complete for CQs).
 - [ ] Monotone case: any fair prefix of the chase is sound; completeness by termination, by a static certificate, or by observing a fixpoint.
 - [ ] Non-monotone case: negation and aggregates over an incomplete stratum; exposed vs unaffected parts of a program; unit-level vs answer-level guarantees.
-- [ ] Typical status taxonomies found in tools and papers (complete by proof, complete by observation, sound but possibly incomplete, unknown) and anytime / approximate reasoning.
+- [ ] How tools and papers report guarantees on a result (with sources; no standard taxonomy is assumed); anytime and approximate reasoning; consistency cannot be certified by an early stop.
+- [ ] Monotone aggregates over lattices: intermediate values as sound bounds.
 - [ ] Budgets (depth, rounds, facts, time) and determinism of budgeted results.
 - [ ] Goal-directed completion: a query can be complete even when the model is infinite.
 - [ ] Examples: default conditions with an incomplete lower stratum; managers are employees.

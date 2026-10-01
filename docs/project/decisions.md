@@ -1,4 +1,4 @@
-# Decisions D1-D19
+# Decisions D1-D20
 
 The decisions taken by the project owner, with their rationale, consequences and the pages they govern. The [README Decisions section](../preliminary-analysis/README.md#decisions) is **authoritative**: if this page and the README ever differ, the README wins and the difference must be reported.
 
@@ -28,6 +28,7 @@ Decisions recorded before D1 (in the README *Options* table): **option B chosen*
 | [D17](#d17) | 2026-10-01 | working principle: cap first, then small verified steps (= E13) | |
 | [D18](#d18) | 2026-10-01 | rounding modes match mainstream languages and are explicitly documented; `round` = half away from zero | refines D13 |
 | [D19](#d19) | 2026-10-01 | COMPLETE-STATIC requires a formal proof; functional terms excluded at first | |
+| [D20](#d20) | 2026-10-01 | one semantics per numeric function, whatever the numeric type of its arguments | |
 
 <a id="d1"></a>
 ## D1 Framework for v1: F2 (2026-09-30)
@@ -157,6 +158,14 @@ Decisions recorded before D1 (in the README *Options* table): **option B chosen*
 - **Decision.** COMPLETE-STATIC requires a **formal proof** of decidability/termination. Start with simple cases and improve the detection of decidable cases over time. In the first versions, any unit whose rules contain functional terms (in bodies, or in data per [D11](#d11)) is excluded from COMPLETE-STATIC; at best it is COMPLETE-DYNAMIC.
 - **Consequences.** Confirms the conservative rule of [report 11 §7.1](../preliminary-analysis/11-f2-framework-definition.md). A new decidable case enters the certified class only with its proof.
 
+<a id="d20"></a>
+## D20 One semantics per numeric function (2026-10-01)
+
+- **Decision.** Every numeric function (`round` and all others) has exactly one semantics regardless of the numeric type of its arguments (integer, decimal, …). No behaviour depends on internal representation. For example, `round(2.5)`, `round(2.50)` and `round(5/2)` are identical for a given mode.
+- **Motivation.** PostgreSQL and MySQL `ROUND` behave differently on exact numeric and on floating-point types (ties). The owner judges this very dangerous: a result would depend on how a value happens to be typed or stored.
+- **Consequences.** The conformance suite must test every numeric function across all numeric types (same inputs written as integers, decimals of different scales, and results of division). Complements [D13](#d13) and [D18](#d18).
+- **Domain background.** [exact decimals and rounding](../domain/concepts/exact-decimals-and-rounding.md). **Project pages.** [test strategy](test-strategy.md).
+
 ## Corrections (2026-10-01)
 
 - The running example **E3-ex** is `employee(x) ∧ not isCompanyDirector(x) → ∃y managerOf(y, x)`: default negation on a data predicate, meant to stop the manager chain at the company director. See [running examples](running-examples.md#e3-ex).
@@ -168,12 +177,17 @@ Decisions recorded before D1 (in the README *Options* table): **option B chosen*
 
 "Labelled null" names the objects produced in facts for unknown individuals. "Existential variable" is used only for rule syntax. "Existential witness" is only an explanatory gloss. See [domain conventions §5](../domain/conventions.md#5-notation).
 
+<a id="notation-and-syntax"></a>
+## Notation and concrete syntax (note, 2026-10-01)
+
+The domain notation uses `not` for default negation and `¬` for classical negation ([domain notation §4](../domain/notation.md#4-rules)). The engine's concrete input syntax must transpose `¬` to an ASCII form (to be specified, with the rest of the concrete syntax).
+
 ## What is NOT decided
 
 - **OP-3** (several recorded values for one argument): pending [report 14](../preliminary-analysis/14-uniqueness-and-functionality.md). The default "use all values and report a violation", with an optional strict mode, is a provisional proposal only.
 - **OP-23** (articulation of the D10 co-reference option with `@lookup` and D11).
 - **Q1** leads A-C (infinite invention chains).
-- Language (E6); concrete syntax; output encoding syntax of Skolem terms (D11); where the new code lives; licence of the new code.
+- Language (E6); concrete syntax (including the ASCII form of `¬`, see [note](#notation-and-syntax)); output encoding syntax of Skolem terms (D11); where the new code lives; licence of the new code.
 
 See [open questions](open-questions.md).
 

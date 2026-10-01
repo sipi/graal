@@ -18,7 +18,7 @@ Stub. Fill the [page template](../conventions.md#2-page-template), using the sym
 
 - [foundations](foundations.md): UNA, Herbrand reading.
 - [Skolem functions and terms](skolem-functions-and-terms.md): identity of function terms.
-- [value-invention strategies](value-invention-strategies.md): keys and lookup.
+- [value-invention strategies](value-invention-strategies.md): keys and constructor predicates.
 - [RDFox](../systems/rdfox.md): equality by representative.
 - [others (egglog)](../systems/others.md): e-graphs.
 

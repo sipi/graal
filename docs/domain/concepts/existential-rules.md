@@ -1,6 +1,6 @@
 # Existential rules
 
-Existential rules (tuple-generating dependencies, Datalog±) allow existentially quantified variables in rule heads, so reasoning can assert the existence of individuals that are not named in the data. They unify ontology languages (Horn description logics) and database dependencies (data exchange, integration). Query answering is undecidable in general, which motivates the decidability classes and chase variants described elsewhere.
+Existential rules (also called tuple-generating dependencies; Datalog± names a family of decidable fragments of them) allow existentially quantified variables in rule heads, so reasoning can assert the existence of individuals that are not named in the data. They unify ontology languages (Horn description logics) and database dependencies (data exchange, integration). Query answering is undecidable in general, which motivates the decidability classes and chase variants described elsewhere.
 
 ## TODO (coverage)
 

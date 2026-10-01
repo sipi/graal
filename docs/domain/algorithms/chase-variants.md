@@ -19,7 +19,7 @@ Stub. Fill the [page template](../conventions.md#2-page-template), using the sym
 - [existential rules](../concepts/existential-rules.md): the language.
 - [chase termination](../concepts/chase-termination.md): termination.
 - [labelled nulls](../concepts/labelled-nulls.md): created terms.
-- [value-invention strategies](../concepts/value-invention-strategies.md): restricted chase as lookup.
+- [value-invention strategies](../concepts/value-invention-strategies.md): restricted chase as conditional invention.
 - [systems: Nemo, VLog, Vadalog, Graal](../systems/nemo.md): implementations.
 
 ## Key references

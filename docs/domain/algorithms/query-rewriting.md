@@ -1,6 +1,6 @@
 # Query rewriting
 
-Query rewriting answers a query by reformulating it with the rules into a query (a UCQ, or a Datalog program) that can be evaluated directly on the data, without materialising consequences. UCQ rewriting with piece-unifiers is sound and complete for existential rules and terminates exactly on finite unification sets. For queries known in advance, the rewriting can be computed once and reused until the rules change.
+Query rewriting answers a query by reformulating it with the rules into a query (a UCQ, or a Datalog program) that can be evaluated directly on the data, without materialising consequences. UCQ rewriting with piece-unifiers is sound and complete for existential rules; for a given query it terminates if and only if that query has a finite UCQ rewriting, which holds for every query exactly when the rule set is a finite unification set (FUS) [U].
 
 ## TODO (coverage)
 

@@ -50,7 +50,7 @@ Variants:
 
 ### 2.1 Stubs
 
-A **stub** has: title, summary, a `## TODO (coverage)` checklist, *Related pages*, and *Key references*. A writer filling a stub replaces the TODO list by the template sections. A page without a TODO section is considered written; it can still be enriched or challenged.
+A **stub** has: title, summary, a `## TODO (coverage)` checklist, *Related pages*, and *Key references*. A writer filling a stub replaces the TODO list by the template sections. A page without a TODO section is considered written; it can still be enriched or challenged. A stub's summary is orientation, not a definition: until the page is written, the primary literature it cites is authoritative on its topic ([main](main.md#status-and-authority)). The page index of [main](main.md#page-index) marks each page *written* or *stub*; update the marker when a page is filled.
 
 ## 3. Scope
 
@@ -58,9 +58,9 @@ The reference is organised in three circles (see [main](main.md#scope)):
 
 | Circle | Topics | Depth |
 |---|---|---|
-| Core | Datalog and extensions, existential rules and the chase, logic programming and ASP, negation, aggregation, equality, Skolemisation and value invention, decidability, algorithms, systems, benchmarks | in depth |
-| Adjacent | description logics and OWL, RDF and SPARQL, Prolog and tabling, ontology-based data access | short pages, focused on the connection with the core |
-| Out (for now) | probabilistic reasoning, temporal reasoning, uncertainty | not covered; propose a page through §8 if needed |
+| Core | Datalog and extensions, existential rules and the chase, logic programming and ASP, negation, aggregation, equality, Skolemisation and value invention, datatypes and built-ins, decidability and complexity, algorithms, systems, benchmarks | in depth |
+| Adjacent | description logics and OWL, RDF and SPARQL, Prolog as a language (tabling is core), ontology-based data access | light: short pages, focused on the connection with the core |
+| Out (for now) | probabilistic and uncertain reasoning, temporal reasoning, production rules, inconsistency-tolerant semantics, argumentation, belief revision, constraint programming and SMT, higher-order logic (reasons in [main](main.md#scope)) | not covered; propose a page through §8 if needed |
 
 ## 4. Naming and layout
 

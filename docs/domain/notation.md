@@ -56,7 +56,7 @@ All rules are implicitly universally quantified over their body variables; the q
 |---|---|---|
 | Datalog rule | `B → H` with `vars(H) ⊆ vars(B)` | Usually `H` is a single atom. |
 | Existential rule (TGD) | `B[x̄, ȳ] → ∃z̄ H[x̄, z̄]` | `x̄` is the **frontier** `fr(ρ) = vars(B) ∩ vars(H)`; `z̄` are the **existential variables**. |
-| Rule with function terms | `B → H` where `H` contains terms `f(t̄)` | Skolemised or "named function" rules. |
+| Rule with function terms | `B → H` where `H` contains terms `f(t̄)` | Either the result of Skolemisation (each function symbol is a fresh, rule-local **Skolem function** `f^ρ_z`, see §7) or a rule using **shared function symbols** written by the user and possibly also used in other rules, data and queries. The two are not equivalent: shared symbols identify individuals across rules. |
 | Normal rule (default negation) | `B⁺ ∧ not B⁻ → H` | `not` is default negation (negation as failure); `B⁺` positive body, `B⁻` negated atoms. |
 | Equality-generating dependency (EGD) | `B → t1 = t2` | |
 | Negative constraint | `B → ⊥` | Integrity constraint; in program syntax `:- B.` or `! :- B.` |
@@ -101,7 +101,7 @@ All rules are implicitly universally quantified over their body variables; the q
 | Predicate dependency graph | `PDG(P)` |
 | Skolemisation | `sk(Σ)`; Skolem function for existential variable `z` of rule `ρ`: `f^ρ_z` |
 | Size of a structure | `|·|` |
-| Complexity classes | `PTIME`, `NP`, `EXPTIME`, `2EXPTIME`, `AC0` (data / combined complexity stated explicitly) |
+| Complexity classes | `PTIME`, `NP`, `EXPTIME`, `2EXPTIME`, `AC0`; always state which measure: **data complexity** (rules and query fixed, only `D` varies) or **combined complexity** (`D`, `Σ` and the query all part of the input) |
 
 ## 8. Program syntax in examples
 
