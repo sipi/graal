@@ -40,7 +40,7 @@ Kotlin or Rust, decided by a time-boxed spike (2 weeks Kotlin + 3 weeks Rust, RE
 | <a id="op-4"></a>OP-4 | Functional terms in facts | [D11](decisions.md#d11): allowed; output encoding parsed back; termination analysis accounts for them |
 | <a id="op-5"></a>OP-5 | Numeric identity | default validated: `integer ⊂ decimal`, `2 = 2.00`; presentation scale later |
 | <a id="op-6"></a>OP-6 | Division | validated: partial exact `/` + explicit `div(…, s, mode)` with a mandatory mode ([D13](decisions.md#d13)) |
-| <a id="op-7"></a>OP-7 | Default rounding mode | [D13](decisions.md#d13): five modes, no default; tie direction of `round` on negatives to confirm |
+| <a id="op-7"></a>OP-7 | Default rounding mode | [D13](decisions.md#d13): five modes, no default; tie direction of `round` on negatives settled by [D18](decisions.md#d18) (half away from zero) |
 | <a id="op-8"></a>OP-8 | Numeric limit | default validated: `digits = 1000` budget |
 | <a id="op-9"></a>OP-9 | Empty groups | default validated: grounded vs implicit groups, chosen syntactically |
 | <a id="op-10"></a>OP-10 | Granularity of the soundness rule | default validated: unit level in v1; answer-level later |

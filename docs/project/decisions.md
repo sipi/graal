@@ -1,4 +1,4 @@
-# Decisions D1-D17
+# Decisions D1-D19
 
 The decisions taken by the project owner, with their rationale, consequences and the pages they govern. The [README Decisions section](../preliminary-analysis/README.md#decisions) is **authoritative**: if this page and the README ever differ, the README wins and the difference must be reported.
 
@@ -26,6 +26,8 @@ Decisions recorded before D1 (in the README *Options* table): **option B chosen*
 | [D15](#d15) | 2026-10-01 | strict guard on pre-computed rewriting | |
 | [D16](#d16) | 2026-10-01 | incremental strategy: v0/v1 pure chase | |
 | [D17](#d17) | 2026-10-01 | working principle: cap first, then small verified steps (= E13) | |
+| [D18](#d18) | 2026-10-01 | rounding modes match mainstream languages and are explicitly documented; `round` = half away from zero | refines D13 |
+| [D19](#d19) | 2026-10-01 | COMPLETE-STATIC requires a formal proof; functional terms excluded at first | |
 
 <a id="d1"></a>
 ## D1 Framework for v1: F2 (2026-09-30)
@@ -115,7 +117,7 @@ Decisions recorded before D1 (in the README *Options* table): **option B chosen*
 ## D13 Rounding: five modes, no default (2026-10-01)
 
 - **Decision.** Five modes: `floor`, `ceil`, `truncate`, `round` (half-up) and `bank_round` (half-even). The modeller must always choose the mode explicitly; **there is no default**. Amends D7; supersedes the defaults of report 11 OP-6/OP-7 where they conflict (former inconsistency I1). Division requires a mode (OP-6).
-- **Still to confirm.** The tie direction of `round` on negative numbers (report 11 §4.3).
+- **Tie direction of `round` on negatives:** settled by [D18](#d18).
 - **Domain background.** [exact decimals and rounding](../domain/concepts/exact-decimals-and-rounding.md).
 
 <a id="d14"></a>
@@ -139,6 +141,21 @@ Decisions recorded before D1 (in the README *Options* table): **option B chosen*
 ## D17 Working principle (2026-10-01)
 
 - **Decision** (also requirement [E13](requirements.md#e13)). First define the target (the "cap"). Then follow a plan that reaches it in small, iterative, incremental steps, each verifiable and validated.
+
+<a id="d18"></a>
+## D18 Rounding semantics (2026-10-01)
+
+- **Decision.** Each rounding mode must behave like its counterpart in mainstream programming languages, and its behaviour must always be explicitly documented, including negative numbers and ties. Refines [D13](#d13).
+- **Why a resolution is needed.** Languages disagree on `round` for ties on negatives. Away from zero (`round(-2.5) = -3`): C `round`, PHP `round` (default `PHP_ROUND_HALF_UP`), Excel `ROUND`, COBOL `ROUNDED`, Java `BigDecimal` `HALF_UP`, and `ROUND` on exact numerics in PostgreSQL and MySQL. Towards +∞ (`-2.5 → -2`): Java `Math.round`, JavaScript `Math.round`. To even: Python 3 `round`.
+- **Resolution.** `round` = half away from zero. `bank_round` = half to even (Python 3, IEEE 754 default, Java `HALF_EVEN`). `floor` (towards −∞), `ceil` (towards +∞) and `truncate` (towards 0) as usual.
+- **Consequences.** [Report 11 §4.3](../preliminary-analysis/11-f2-framework-definition.md) gives, for each mode, a table of results on 2.5, 3.5, -2.5, -3.5, 2.4, -2.6 and the corresponding function in C, Java, JavaScript, Python, PHP, COBOL and SQL; these become conformance tests. Closes the tie flag of [OP-7](open-questions.md#op-7).
+- **Domain background.** [exact decimals and rounding](../domain/concepts/exact-decimals-and-rounding.md).
+
+<a id="d19"></a>
+## D19 Static completeness requires a proof (2026-10-01)
+
+- **Decision.** COMPLETE-STATIC requires a **formal proof** of decidability/termination. Start with simple cases and improve the detection of decidable cases over time. In the first versions, any unit whose rules contain functional terms (in bodies, or in data per [D11](#d11)) is excluded from COMPLETE-STATIC; at best it is COMPLETE-DYNAMIC.
+- **Consequences.** Confirms the conservative rule of [report 11 §7.1](../preliminary-analysis/11-f2-framework-definition.md). A new decidable case enters the certified class only with its proof.
 
 ## Corrections (2026-10-01)
 

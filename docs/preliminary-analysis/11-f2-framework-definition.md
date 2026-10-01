@@ -1,8 +1,8 @@
 # 11: Definition of the F2 framework (v1 reference contract)
 
-**Status: VALIDATED by owner on 2026-10-01, except OP-3 (pending [report 14](14-uniqueness-and-functionality.md)).** This document is the reference contract that conformance tests and the implementation must follow. Points that required an owner choice are marked **[choice]** and repeated in §11 with their options. Since the validation, each such point carries the decision that settled it (D9-D16 in the [README](README.md#decisions)), or "default validated" when the recommended default was accepted as is. OP-3 remains open.
+**Status: VALIDATED by owner on 2026-10-01, except OP-3 (pending [report 14](14-uniqueness-and-functionality.md)).** This document is the reference contract that conformance tests and the implementation must follow. Points that required an owner choice are marked **[choice]** and repeated in §11 with their options. Since the validation, each such point carries the decision that settled it (D9-D19 in the [README](README.md#decisions)), or "default validated" when the recommended default was accepted as is. OP-3 remains open.
 
-Scope: F2 = stratified Datalog with **named** Skolem functions under perfect-model semantics, with exact decimals (decision D1). It encodes decisions D1, D2, D3, D5 and D9-D16 (see [README](README.md#decisions)) and requirements E1, E3, E5 and E10. Implementation is staged (D16, D17): v0 is plain positive Datalog (D6), and v1 implements materialisation only (§8). Background: [report 09](09-skolem-function-frameworks.md) (named functions, `T(P)`, termination criteria) and [report 07](07-sota-theory.md) §7 (checklist of specification decisions).
+Scope: F2 = stratified Datalog with **named** Skolem functions under perfect-model semantics, with exact decimals (decision D1). It encodes decisions D1, D2, D3, D5 and D9-D19 (see [README](README.md#decisions)) and requirements E1, E3, E5 and E10. Implementation is staged (D16, D17): v0 is plain positive Datalog (D6), and v1 implements materialisation only (§8). Background: [report 09](09-skolem-function-frameworks.md) (named functions, `T(P)`, termination criteria) and [report 07](07-sota-theory.md) §7 (checklist of specification decisions).
 
 Conventions:
 - Propositions marked **(sketch)** have a proof sketch only. Like the [U-own] items of report 09, each needs a careful proof before it is relied on (E9).
@@ -279,13 +279,24 @@ Every built-in is a fixed relation on `U`:
   - defined iff `e2 ≠ 0` and the exact rational quotient lies in `𝔻`, i.e. its reduced denominator has only the prime factors 2 and 5;
   - otherwise the assignment does not hold for that instance (the rule does not fire) and a diagnostic `arithmetic-undefined` is attached to the result.
   - `div(e1, e2, s, mode)` is total for `e2 ≠ 0`: it is the exact quotient rounded to scale `s` with the given mode.
-- **Rounding** `round(e, s, mode)` rounds to `s` fractional digits. **[choice] → D13** (OP-7): five modes, and the modeller must always choose one; there is **no default**.
-  - `floor`: towards −∞ (`floor(-2.5, 0) = -3`);
-  - `ceil`: towards +∞ (`ceil(-2.5, 0) = -2`);
-  - `truncate`: towards zero (`truncate(-2.7, 0) = -2`);
-  - `round`: to nearest, ties half-up (`round(2.5, 0) = 3`);
-  - `bank_round`: to nearest, ties half-even (`bank_round(2.5, 0) = 2`, `bank_round(3.5, 0) = 4`).
-  - To confirm with the owner: the tie direction of `round` on negative numbers. Read literally, "half-up" gives `round(-2.5, 0) = -2` (towards +∞); the commercial reading used in the draft of this report (half away from zero) gives `-3`.
+- **Rounding** `round(e, s, mode)` rounds to `s` fractional digits. **[choice] → D13, D18** (OP-7): five modes, and the modeller must always choose one; there is **no default**. **D18**: each mode behaves like its counterpart in mainstream languages, and its behaviour on negative numbers and ties is documented explicitly. Languages disagree on `round` for ties on negatives (C, PHP, Excel, COBOL and Java `BigDecimal` `HALF_UP` go away from zero; Java `Math.round` and JavaScript `Math.round` go towards +∞; Python 3 `round` goes to even), so the project fixes `round` = half away from zero. The two other tie conventions exist as `bank_round` (to even) only; there is no half-towards-+∞ mode.
+  - `floor`: towards −∞;
+  - `ceil`: towards +∞;
+  - `truncate`: towards zero;
+  - `round`: to nearest; **ties away from zero** (`round(2.5, 0) = 3`, `round(-2.5, 0) = -3`);
+  - `bank_round`: to nearest; **ties to the even neighbour** (`bank_round(2.5, 0) = 2`, `bank_round(3.5, 0) = 4`, `bank_round(-2.5, 0) = -2`).
+
+  Results at scale 0:
+
+  | mode | 2.5 | 3.5 | -2.5 | -3.5 | 2.4 | -2.6 | C | Java | JavaScript | Python | PHP | COBOL | SQL |
+  |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+  | `floor` | 2 | 3 | -3 | -4 | 2 | -3 | `floor` | `Math.floor`, `RoundingMode.FLOOR` | `Math.floor` | `math.floor` | `floor` | `ROUNDED MODE IS TOWARD-LESSER` [U] | `FLOOR` |
+  | `ceil` | 3 | 4 | -2 | -3 | 3 | -2 | `ceil` | `Math.ceil`, `RoundingMode.CEILING` | `Math.ceil` | `math.ceil` | `ceil` | `ROUNDED MODE IS TOWARD-GREATER` [U] | `CEIL`/`CEILING` |
+  | `truncate` | 2 | 3 | -2 | -3 | 2 | -2 | `trunc` | `RoundingMode.DOWN` | `Math.trunc` | `math.trunc` | cast `(int)`; `PHP_ROUND_TOWARD_ZERO` in `round` since PHP 8.4 [U] | `ROUNDED MODE IS TRUNCATION` [U]; also what happens when `ROUNDED` is absent | `TRUNC`/`TRUNCATE` |
+  | `round` | 3 | 4 | **-3** | **-4** | 2 | -3 | `round` | `RoundingMode.HALF_UP` (not `Math.round`) | none (`Math.round` is half towards +∞: -2) | none (`round` is half-even); `Decimal.quantize(rounding=ROUND_HALF_UP)` | `round` (default `PHP_ROUND_HALF_UP`) | `ROUNDED` (default: `NEAREST-AWAY-FROM-ZERO`) | `ROUND` on exact numerics (PostgreSQL `numeric`, MySQL `DECIMAL`) |
+  | `bank_round` | 2 | 4 | -2 | -4 | 2 | -3 | `rint`, `nearbyint` (default rounding mode) | `Math.rint`, `RoundingMode.HALF_EVEN` | none (hand-written) | `round` (built-in, Python 3) | `round(..., mode: PHP_ROUND_HALF_EVEN)` | `ROUNDED MODE IS NEAREST-EVEN` | `ROUND` on `double precision` in PostgreSQL (typical, platform dependent); `ROUND_HALF_EVEN` / `BANKER` options vary by system [U] |
+
+  Sources and verification status are in [exact decimals and rounding](../domain/concepts/exact-decimals-and-rounding.md#cross-language-comparison-of-rounding-modes). An implementation must pass a conformance test for every cell of the first six columns.
 - **Implementation limit.** Implementations bound the number of significant digits (a resource budget, §6.4). Exceeding it is *not* a semantic value: it is treated as budget exhaustion, so the affected evaluation unit becomes incomplete. The model is never silently altered.
 
 Because built-ins are relations, an undefined operation makes an atom false. That is a definition, not an approximation, so it never threatens soundness.
@@ -449,6 +460,8 @@ Semantics:
 *Intuition.* Before running, the analyser tries to prove that each component will finish on any data. The danger is a cycle in which a rule builds a bigger term from a term produced by the same cycle: `hasManager(X, manager(X))` feeds `employee(manager(X))`, which feeds `hasManager(manager(X), manager(manager(X)))`, and so on. The tests of §7.2 look for such cycles, from the cheapest test to the most expensive. They first ignore negation and arithmetic (the "abstraction"): ignoring them only allows more derivations, so a proof of termination for the larger program also covers the real one. E1-ex is certified; the E3-ex trap of §10.4 is not, and the analyser names the cycle.
 
 ### 7.1 What is certified
+
+**Policy (D19).** The status COMPLETE-STATIC requires a **formal proof** of decidability/termination. The detection starts with simple cases and is improved over time. In the first versions, any unit whose rules contain functional terms, in bodies or in data (D11), is excluded from COMPLETE-STATIC: at best it is COMPLETE-DYNAMIC. The conservative rule below is therefore not a temporary gap but the policy; a case is added to the certified class only together with its proof.
 
 A unit `C` is **statically certified** if its **cone program** terminates for every finite function-free `D`. The cone program consists of the rules of `lb(K)` whose heads are in `C` or in units reached from `C`. Certification is done on an **abstraction**, because the critical-instance argument fails with negation and arithmetic ([09 §2](09-skolem-function-frameworks.md), last row).
 
@@ -771,7 +784,7 @@ Owner validation of 2026-10-01: every point is settled except OP-3. "Default val
 | OP-4 | Functional terms in facts | (a) forbidden in v1; (b) allowed for functions without lookup | (a) | **D11**: allowed; output encoding parsed back (round-trip, §5.2); termination analysis accounts for them (§7.1) |
 | OP-5 | Numeric identity and presentation | (a) `integer ⊂ decimal`, value identity (`2 = 2.00`), canonical output; (b) scale-preserving terms; (c) (a) plus a declared presentation scale `@type p(decimal(2))` | **(a)** now, **(c)** later | default validated |
 | OP-6 | Division | (a) partial exact `/` plus explicit `div(…, s, mode)`; (b) rationals as value space; (c) evaluation error aborts the run | (a) | (a) validated, with a mandatory mode (**D13**) |
-| OP-7 | Default rounding mode | `half_up` (away from zero) / `half_even` | `half_up` | **D13**: five modes `floor`, `ceil`, `truncate`, `round` (half-up), `bank_round` (half-even); no default. Tie direction of `round` on negatives to confirm (§4.3) |
+| OP-7 | Default rounding mode | `half_up` (away from zero) / `half_even` | `half_up` | **D13**: five modes `floor`, `ceil`, `truncate`, `round`, `bank_round`; no default. **D18**: `round` = half away from zero (`round(-2.5) = -3`), `bank_round` = half to even; each mode documented with examples (§4.3) |
 | OP-8 | Numeric limit | digits budget; default value | budget `digits = 1000` significant digits, overflow = budget exhaustion (never a value) | default validated |
 | OP-9 | Empty groups (§4.4) | grounded groups exist (`count = sum = 0`, no min/max) vs SQL-only groups | **both readings**, chosen syntactically by where group-by variables are bound | default validated |
 | OP-10 | Granularity of the soundness rule (§6) | (a) unit-level (predicate/SCC, table); (b) answer-level via provenance (an answer is sound if some derivation avoids exposed checks); (c) plus monotone-aggregate edges treated as positive | **(a)** in v1; (b) and (c) as later refinements | default validated |

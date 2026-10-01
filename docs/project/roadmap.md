@@ -13,7 +13,7 @@ Every phase follows [D17](decisions.md#d17) / [E13](requirements.md#e13): first 
 
 | # | Phase | Deliverables | State (2026-10-01) |
 |---|---|---|---|
-| 1 | **Theoretical framework** | 09 frameworks (done, F2 chosen, [D1](decisions.md#d1)); 10 rule transformations and proof sheets (**postponed**, [D4](decisions.md#d4)); 11 framework definition (**validated 2026-10-01 except OP-3**, D9-D16); 14 uniqueness and functionality (**in progress**, input for OP-3) | nearly done |
+| 1 | **Theoretical framework** | 09 frameworks (done, F2 chosen, [D1](decisions.md#d1)); 10 rule transformations and proof sheets (**postponed**, [D4](decisions.md#d4)); 11 framework definition (**validated 2026-10-01 except OP-3**, D9-D19); 14 uniqueness and functionality (**in progress**, input for OP-3) | nearly done |
 | 2 | **Test scenarios and quality benchmark** | conformance suite with expected outputs and statuses, built independently of the implementation; oracles: Graal on its valid fragment, clingo/DLV for negation/aggregation over invented terms | not started; report 12 §9 already lists 14 scenarios |
 | 3 | **Software specification and architecture** | module boundaries, term model, storage, APIs, analyser output format | not started |
 | 4 | **Prototype** | engine passing the conformance suite; language decided by the spike (E6) | not started |

@@ -2,7 +2,7 @@
 
 The requirements agreed between the project owner and the analysis phase, explained one by one: what each means, why it exists, how it constrains the design, and which pages implement it. The wording of the [README](../preliminary-analysis/README.md#requirements-agreed-so-far) is authoritative; this page only explains it.
 
-> **Status in this project:** `v0` `F2` `later` — all requirements are in force; later decisions (D1-D17) refine them, see [decisions](decisions.md).
+> **Status in this project:** `v0` `F2` `later` — all requirements are in force; later decisions (D1-D19) refine them, see [decisions](decisions.md).
 > **Page maturity:** reviewed-by-architect · checked against README 2026-10-01
 
 Note on numbering: `E1`-`E13` are **requirements**; `E1-ex`, `E2-ex`, `E3-ex` are **running examples** (see [running examples](running-examples.md)). Do not confuse them.
