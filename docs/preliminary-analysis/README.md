@@ -19,8 +19,8 @@ Evaluate whether to refurbish Graal (dependency upgrade, modernization, partial 
 | 07 | [State of the art: theory](07-sota-theory.md) | Theory survey (semantics, equivalence-preserving transformations, decidability classes) with a checklist of 20 specification decisions. |
 | 08 | [Kotlin vs Rust](08-kotlin-vs-rust.md) | Weighted analysis: Rust 4.10 vs Kotlin 3.35; recommends a Rust core, conditional on a spike. |
 | 09 | [Skolem-function frameworks](09-skolem-function-frameworks.md) | Theoretical frameworks with named Skolem functions: function-graph translation T(P), transfer of decidability classes, equality options (lookup-before-invent), Graal-as-oracle boundaries, frameworks F1/F2/F3. |
-| 11 | [F2 framework definition](11-f2-framework-definition.md) | **DRAFT — awaiting owner validation.** Formal definition of the v1 framework F2: syntax, lookup-before-invent translation, stratification, perfect-model semantics with exact decimals, reasoning tasks, soundness under non-termination and completeness statuses, termination portfolio, strategies (incl. hybrid rewriting, D5), relation to existential rules, worked examples, open points. |
-| 12 | [Invention under negation](12-invention-under-negation.md) | Value invention correlated with negation: behaviour across approaches, test scenarios. Covers `employee(x), not hasBoss(x) → ∃y managerOf(y,x)` and variants under F2, restricted/Skolem chase, stable models and well-founded semantics, checked with clingo, a chase simulator and Nemo. Also covers the restricted chase as an implicit self-negation, recommends rejecting self- and cross-defeating invention, and gives 14 test scenarios. |
+| 11 | [F2 framework definition](11-f2-framework-definition.md) | **DRAFT — under owner review.** Formal definition of the v1 framework F2: syntax, lookup-before-invent translation, stratification, perfect-model semantics with exact decimals, reasoning tasks, soundness under non-termination and completeness statuses, termination portfolio, strategies (incl. hybrid rewriting, D5), relation to existential rules, worked examples, open points. |
+| 12 | [Invention under negation](12-invention-under-negation.md) (see Corrections) | Value invention correlated with negation: behaviour across approaches, test scenarios. Covers `employee(x), not hasBoss(x) → ∃y managerOf(y,x)` and variants under F2, restricted/Skolem chase, stable models and well-founded semantics, checked with clingo, a chase simulator and Nemo. Also covers the restricted chase as an implicit self-negation, recommends rejecting self- and cross-defeating invention, and gives 14 test scenarios. |
 
 ## Key findings
 
@@ -107,6 +107,20 @@ Recorded 2026-09-30:
 - **D4** The rule-transformation deliverable (former "10") is postponed: it is not a prerequisite for a first prototype.
 - **D5** Query rewriting in presence of negation: rewrite stratum by stratum, negated literals being evaluated against lower strata materialised by the chase (hybrid). v1 guard: pre-computed rewriting only for queries that depend on no negation (directly or transitively). Pre-computed rewritings are invalidated when rules change. See [report 11](11-f2-framework-definition.md) §8.4.
 
+Recorded 2026-10-01:
+
+- **D6** First engine scope (v0): plain positive Datalog — no existential variables, no Skolem functions, no negation (and therefore no aggregation). Rationale: avoid blocking on the open theoretical questions of value invention. v0 is not throwaway: the analyser will detect when a formalisation falls in this fragment and dispatch it to a specialised, faster algorithm. The architecture must still anticipate F2 (three term kinds, strata) so that v0 extends rather than gets rewritten.
+- **D7** Rounding is chosen by the human modeller; three modes must be available: `floor`, `round` (half-up) and `bank_round` (half-even). This supersedes the single default proposed in [report 11](11-f2-framework-definition.md) open point 7.
+- **D8** Late materialisation of Skolem terms (direction for F2, not v0): keep Skolem terms symbolic, with their creation context, during reasoning, and turn them into output identifiers only when results are returned; this keeps the Skolem chase order-independent. Caveat recorded by the owner: it requires accepting that two distinct Skolem terms (e.g. `manager(Tom)`, `manager(Anna)`) may denote the same individual, which is not theoretically neutral (unique-name assumption vs equality; impact on counting and aggregates).
+
+## Corrections
+
+Recorded 2026-10-01:
+
+- The running example E3-ex is the rule `employee(x) AND NOT isCompanyDirector(x) -> exists y managerOf(y, x)`: negation on a data predicate, intended to stop the manager chain at the company director, who is the only employee without a boss.
+- [Report 12](12-invention-under-negation.md) was built on a misreading (the negated predicate was interpreted as `hasBoss`, i.e. lookup-before-invent). Its variants remain valid test scenarios but do not model the owner's intended rule.
+- With pure Skolem terms the chain does not stop at the director: an invented `manager(...)` term is never equal to the director constant, unless equality between invented terms and constants is supported. This links to the caveat of D8.
+
 ## Next steps
 
 Phase order decided by the project owner:
@@ -115,6 +129,8 @@ Phase order decided by the project owner:
    - 09 frameworks (done, validated: F2 chosen, see D1);
    - 10 rule transformations and proof sheets (postponed, see D4);
    - 11 framework definition document: syntax, semantics, reasoning tasks, completeness statuses (drafted, awaiting owner validation: [report 11](11-f2-framework-definition.md), open points in §11).
+
+   v0 (D6): tests, specification/architecture and prototype for the positive Datalog fragment first; F2 features follow.
 2. **Test scenarios and quality benchmark** (correct and complete results), built independently of the implementation. Oracles: Graal on the fragment where it is valid (see [report 09](09-skolem-function-frameworks.md) §1.4), clingo/DLV for negation/aggregation over invented terms.
 3. **Software specifications and architecture.**
 4. **Prototype** (Kotlin vs Rust decision). With agent-written code the criterion becomes: passes the conformance suite and the architecture remains reviewable by the owner; Rust's compiler-enforced safety is an extra argument.
