@@ -121,6 +121,22 @@ Recorded 2026-10-01:
 - [Report 12](12-invention-under-negation.md) was built on a misreading (the negated predicate was interpreted as `hasBoss`, i.e. lookup-before-invent). Its variants remain valid test scenarios but do not model the owner's intended rule.
 - With pure Skolem terms the chain does not stop at the director: an invented `manager(...)` term is never equal to the director constant, unless equality between invented terms and constants is supported. This links to the caveat of D8.
 
+## Open questions and solution leads
+
+Recorded 2026-10-01. These are open questions and candidate leads, NOT decisions.
+
+### Q1 Infinite value-invention chains despite a "stopping" negation
+
+- **Problem:** `employee(x), not isCompanyDirector(x) -> exists y managerOf(y, x)` together with `managerOf(y, x) -> employee(y)` recurses forever, with existential variables as well as with Skolem terms: invented individuals are never the director, so the negation stops nothing. The modeller's intent (stop at the director) cannot be expressed without equality between invented terms and constants (see D8 caveat).
+- **Lead A, depth guard:** cap the length of such recursions. Sound but not complete (status NOT-GUARANTEED); if a negation sits above the cut chain, answers may become wrong, so the status is UNKNOWN (rule N1 of [report 11](11-f2-framework-definition.md), scenario V6b of [report 12](12-invention-under-negation.md)). Useful only as a safety net.
+- **Lead B, pattern detection and blocking (a simple case of GBTS algorithms):** a recursive pattern attached only to invented individuals (Xn -managerOf-> Xn-1 -managerOf-> Xn-2 ...) is detectable; when a new link has the same type as an earlier one, stop expanding and keep a back-link, giving a finite representation of the infinite model.
+  - Query answering must evaluate on the chain unfolded up to the query size to stay complete.
+  - The type must include negated predicates: easy when they are data-only (an invented individual is never a director), harder when they can be derived for invented individuals.
+  - Related: Vadalog isomorphism-based pruning ([report 06](06-sota-engines.md), idea 4), FDNC / finitary programs ([report 09](09-skolem-function-frameworks.md)).
+  - Possible scope nuance to discuss later: general GBTS stays out of scope (E10), but blocking of simple recursive chains could enter F2. Potentially publishable.
+- **Lead C, diagnostics to the modeller (owner: "high value"):** an engine that detects the pattern can tell the human or LLM modeller, e.g. "your rules imply an infinite chain of managers starting from Tom; did you mean it to stop at the company director?". For a formalisation layer used by AI agents, such diagnostics may be worth as much as the answers themselves. Candidate for a first-class output of the analyser (to be specified later).
+- **Not relevant to v0** (positive Datalog, D6); to be revisited with F2.
+
 ## Next steps
 
 Phase order decided by the project owner:
